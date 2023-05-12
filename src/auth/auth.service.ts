@@ -10,10 +10,13 @@ import { verifyPassword } from 'src/utils/bcrypt.util';
 import {
   UNVERIFIED_ACCOUNT,
   WRONG_EMAIL_OR_PASSWORD,
+  WRONG_VERIFICATION_LINK,
 } from 'src/constant/error.constant';
 import { ConfigService } from '@nestjs/config';
 import { SignUpDto } from './dto/sign-up.dto';
 import { MailerService } from '@nestjs-modules/mailer';
+import { VerifyEmailDto } from './dto/verify-email.dto';
+import { verificationEmail } from 'src/constant/email-template.constant';
 
 @Injectable()
 export class AuthService {
@@ -46,13 +49,25 @@ export class AuthService {
 
   async signUp(signUpDto: SignUpDto) {
     const user = await this.userService.createUser(signUpDto);
-    const otp = user.otp;
     await this.mailerService.sendMail({
-      from: 'bruh',
+      from: 'noreply@chatnow.com',
       to: user.email,
-      text: otp,
+      subject: '[ChatNow] Activate Your Account',
+      html: verificationEmail(user.email, user.otp),
     });
     return user;
+  }
+
+  async resendEmail(email: string) {
+    const user = await this.userService.findOne(email);
+    if (user && !user.isActive) {
+      await this.mailerService.sendMail({
+        from: 'noreply@chatnow.com',
+        to: user.email,
+        subject: '[ChatNow] Activate Your Account',
+        html: verificationEmail(user.email, user.otp),
+      });
+    }
   }
 
   async verifyAccessToken(accessToken: string) {
@@ -63,6 +78,21 @@ export class AuthService {
       return payload;
     } catch {
       throw new UnauthorizedException();
+    }
+  }
+
+  async verifyEmail(verifyEmailDto: VerifyEmailDto) {
+    try {
+      const { email, otp } = verifyEmailDto;
+      const user = await this.userService.findOne(email);
+
+      if (!user || user.otp !== otp) {
+        throw new BadRequestException({ ...WRONG_VERIFICATION_LINK });
+      }
+      user.isActive = true;
+      return this.userService.update(user.id, user);
+    } catch {
+      throw new BadRequestException();
     }
   }
 }

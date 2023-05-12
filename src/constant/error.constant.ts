@@ -14,3 +14,7 @@ export const WRONG_EMAIL_OR_PASSWORD = new Error(
   'Wrong email or password',
 );
 export const UNVERIFIED_ACCOUNT = new Error(10003, 'Account not verified');
+export const WRONG_VERIFICATION_LINK = new Error(
+  10004,
+  'Wrong verification link',
+);

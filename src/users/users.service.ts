@@ -10,6 +10,7 @@ import { User } from './entities/user.entity';
 import { hashPassword } from 'src/utils/bcrypt.util';
 import { EMAIL_ALREADY_USED } from 'src/constant/error.constant';
 import { v4 } from 'uuid';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -47,9 +48,9 @@ export class UsersService {
     return user;
   }
 
-  //  update(id: number, updateUserDto: UpdateUserDto) {
-  //    return `This action updates a #${id} user`;
-  //  }
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    return this.userRepository.update({ id }, updateUserDto);
+  }
   //
   //  remove(id: number) {
   //    return `This action removes a #${id} user`;
