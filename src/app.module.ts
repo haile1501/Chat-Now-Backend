@@ -7,6 +7,12 @@ import { UsersModule } from './users/users.module';
 import configuration from './config/configuration';
 import { AuthModule } from './auth/auth.module';
 import { MailerModule, MailerOptions } from '@nestjs-modules/mailer';
+import { FriendsModule } from './friends/friends.module';
+import { JwtModule } from '@nestjs/jwt';
+import { ChatroomsModule } from './chatrooms/chatrooms.module';
+import { MessagesModule } from './messages/messages.module';
+
+
 
 @Module({
   imports: [
@@ -25,6 +31,10 @@ import { MailerModule, MailerOptions } from '@nestjs-modules/mailer';
     }),
     UsersModule,
     AuthModule,
+    FriendsModule,
+    JwtModule,
+    ChatroomsModule,
+    MessagesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

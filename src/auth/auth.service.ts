@@ -44,6 +44,7 @@ export class AuthService {
 
     const payload = { ...user };
     const accessToken = await this.jwtService.signAsync(payload);
+    
     return accessToken;
   }
 
@@ -60,6 +61,7 @@ export class AuthService {
 
   async resendEmail(email: string) {
     const user = await this.userService.findOne(email);
+    
     if (user && !user.isActive) {
       await this.mailerService.sendMail({
         from: 'noreply@chatnow.com',

@@ -9,8 +9,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UpdateUserDto } from './dto/update-user.dto';
+
 import { AuthGuard } from 'src/auth/guard/auth.guard';
+import { SignUpDto } from 'src/auth/dto/sign-up.dto';
 
 @Controller('user')
 export class UsersController {
@@ -21,18 +22,8 @@ export class UsersController {
   findAll() {
     return this.userService.findAll();
   }
-  //  @Get(':id')
-  //  findOne(@Param('id') id: string) {
-  //    return this.userService.findOne(+id);
-  //  }
-  //
-  //  @Patch(':id')
-  //  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-  //    return this.userService.update(+id, updateUserDto);
-  //  }
-  //
-  //  @Delete(':id')
-  //  remove(@Param('id') id: string) {
-  //    return this.userService.remove(+id);
-  //  }
+  @Post()
+  createUser(@Body() createUserDto : SignUpDto) {
+    return this.userService.createUser(createUserDto);
+  }
 }
