@@ -9,8 +9,8 @@ import { AuthModule } from './auth/auth.module';
 import { MailerModule, MailerOptions } from '@nestjs-modules/mailer';
 import { FriendsModule } from './friends/friends.module';
 import { JwtModule } from '@nestjs/jwt';
-import { ChatroomsModule } from './chatrooms/chatrooms.module';
 import { MessagesModule } from './messages/messages.module';
+import { ConversationsModule } from './conversations/conversations.module';
 
 
 
@@ -33,8 +33,9 @@ import { MessagesModule } from './messages/messages.module';
     AuthModule,
     FriendsModule,
     JwtModule,
-    ChatroomsModule,
+    ConversationsModule,
     MessagesModule,
+    ConversationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

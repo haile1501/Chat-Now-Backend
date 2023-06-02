@@ -1,7 +1,7 @@
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Namespace } from "socket.io";
 import { Logger } from "@nestjs/common";
-import { ChatroomsService } from "src/chatrooms/chatrooms.service";
+
 import { MessagesService } from "src/messages/messages.service";
 import { JwtService } from "@nestjs/jwt";
 import { AuthService } from "src/auth/auth.service";
@@ -11,6 +11,7 @@ import { FriendsService } from "src/friends/friends.service";
 import { CreateMessageDto } from "src/messages/dto/create-message.dto";
 import { ConversationDto } from "src/messages/dto/get-conversation.dto";
 import { sortBy } from 'lodash';
+import { ConversationsService } from "src/conversations/conversations.service";
 @WebSocketGateway({
     namespace: 'auths',
 })
@@ -22,7 +23,7 @@ export class AuthsGateWay implements OnGatewayConnection, OnGatewayDisconnect , 
         private readonly authService : AuthService,
         private readonly usersService : UsersService,
         private readonly friendService : FriendsService,
-        private readonly chatroomService : ChatroomsService){}
+        private readonly conversationService : ConversationsService){}
 
     @WebSocketServer() io: Namespace;
     afterInit(): void {
@@ -52,13 +53,15 @@ export class AuthsGateWay implements OnGatewayConnection, OnGatewayDisconnect , 
         this.logger.log(`Disconnected socket id: ${client.data.user.id}`);
         this.logger.debug(`Number of connected sockets: ${sockets.size}`);
     }
+    
+
     @SubscribeMessage('join_room')
     async join_room(
         @MessageBody() room : ConversationDto,
         @ConnectedSocket() client : SocketWithAuth) :Promise<any>
     {
-        if(!this.chatroomService.find(room.roomId)){
-            const newRoom = this.chatroomService.create(room.roomId);
+        if(!this.conversationService.find(room.roomId)){
+            const newRoom = this.conversationService.create(room.roomId);
         }
         const conversation = await this.messagesService.getAnConversation(room)
         console.log(conversation);
@@ -73,8 +76,8 @@ export class AuthsGateWay implements OnGatewayConnection, OnGatewayDisconnect , 
         @MessageBody() messageSend : CreateMessageDto ,
         @ConnectedSocket() client : SocketWithAuth) :Promise<void> 
     {
-        if(!this.chatroomService.find(messageSend.roomId)){
-            const newRoom = this.chatroomService.create(messageSend.roomId);
+        if(!this.conversationService.find(messageSend.roomId)){
+            const newRoom = this.conversationService.create(messageSend.roomId);
         }
         messageSend.userSendId = client.data.user.id;
         const newMess = await this.messagesService.sendMess(messageSend);
@@ -86,7 +89,7 @@ export class AuthsGateWay implements OnGatewayConnection, OnGatewayDisconnect , 
             `join room : ${newMess.roomId}` 
         );
         await client.join(newMess.roomId);
-        const conversation = await this.chatroomService.find(messageSend.roomId);
+        const conversation = await this.conversationService.find(messageSend.roomId);
         this.io.to(client.data.roomId).emit('send_message', newMess);
     }
 }
