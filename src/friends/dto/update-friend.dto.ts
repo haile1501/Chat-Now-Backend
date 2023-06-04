@@ -1,12 +1,13 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateFriendDto } from './create-friend.dto';
-import { IsString } from 'class-validator';
+import { IsEnum, IsNumber } from 'class-validator';
+import { FriendStatus } from 'src/constant/constant';
 
-export class UpdateFriendDto extends PartialType(CreateFriendDto) {
-    @IsString()
-    userSendEmail : string;
+export class UpdateFriendDto {
+  @IsNumber()
+  requestId: number;
 
-    @IsString()
-    userReceiveEmail : string;
+  @IsEnum({
+    each: true,
+    eachCustomValue: (value: FriendStatus) => value !== FriendStatus.Waiting,
+  })
+  status: FriendStatus;
 }
-

@@ -11,9 +11,8 @@ import { FriendsModule } from './friends/friends.module';
 import { JwtModule } from '@nestjs/jwt';
 import { MessagesModule } from './messages/messages.module';
 import { ConversationsModule } from './conversations/conversations.module';
-import { ConversationMembersModule } from './conversation-members/conversation-members.module';
-
-
+import { ChatModule } from './chat/chat.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -37,7 +36,8 @@ import { ConversationMembersModule } from './conversation-members/conversation-m
     ConversationsModule,
     MessagesModule,
     ConversationsModule,
-    ConversationMembersModule,
+    ChatModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

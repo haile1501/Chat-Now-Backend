@@ -1,5 +1,5 @@
 {
-  "name": "Chat-Now-Backend",
+  "name": "chat-now-backend",
   "version": "1.0.0",
   "description": "Backend code for the Chat-Now application",
   "main": "index.js",

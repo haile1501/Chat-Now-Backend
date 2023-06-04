@@ -5,12 +5,14 @@ services:
     image: postgres
     restart: always
     ports:
-      - '5433:5432'
+      - '6000:5432'
     expose:
-      - 5433
+      - 6000
     environment:
       POSTGRES_DB: chatnow
       POSTGRES_PASSWORD: 123456789
+    volumes:
+      - db_data:/var/lib/postgresql/data
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin4_container
