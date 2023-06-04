@@ -9,15 +9,16 @@ services:
     expose:
       - 5433
     environment:
+      POSTGRES_DB: chatnow
       POSTGRES_PASSWORD: 123456789
-    volumes:
-      -dbdata: v
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin4_container
     restart: always
     ports:
-      - "80:80"
+      - '80:80'
     environment:
       PGADMIN_DEFAULT_EMAIL: hai@gmail.com
       PGADMIN_DEFAULT_PASSWORD: 123456789
+volumes:
+  db_data:
