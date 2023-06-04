@@ -1,10 +1,18 @@
 import { Gender } from 'src/constant/constant';
-import { Column, Entity, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
+import { Conversation } from 'src/conversations/entities/conversation.entity';
+import { Message } from 'src/messages/entities/message.entity';
+import {
+  Column,
+  Entity,
+  ManyToMany,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class User {
-  @PrimaryColumn()
-  id: string;
+  @PrimaryGeneratedColumn()
+  userId: number;
 
   @Column({ unique: true })
   email: string;
@@ -29,4 +37,10 @@ export class User {
 
   @Column({ nullable: true })
   otp: string;
+
+  @ManyToMany(() => Conversation, (conversation) => conversation.users)
+  conversations: Conversation[];
+
+  @OneToMany(() => Message, (message) => message.user)
+  messages: Message;
 }

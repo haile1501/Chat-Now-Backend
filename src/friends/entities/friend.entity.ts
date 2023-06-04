@@ -1,17 +1,30 @@
-import { Column, Entity, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
+import { FriendStatus } from 'src/constant/constant';
+import { User } from 'src/users/entities/user.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToOne,
+  PrimaryColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class Friend {
-    @PrimaryColumn()
-    id : string;
+  @PrimaryGeneratedColumn()
+  friendId: number;
 
-    @Column()
-    userSendEmail : string;
+  @OneToOne(() => User)
+  @JoinColumn({ name: 'senderId' })
+  sender: User;
 
-    @Column()
-    userReceiveEmail : string;
+  @OneToOne(() => User)
+  @JoinColumn({ name: 'receiverId' })
+  receiver: User;
 
-    @Column({default:false})
-    acceptStatus : boolean
-    
+  @Column()
+  requestTime: Date;
+
+  @Column({ type: 'enum', enum: FriendStatus })
+  status: FriendStatus;
 }

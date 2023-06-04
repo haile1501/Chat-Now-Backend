@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SignUpDto } from 'src/auth/dto/sign-up.dto';
@@ -11,7 +7,6 @@ import { hashPassword } from 'src/utils/bcrypt.util';
 import { EMAIL_ALREADY_USED } from 'src/constant/error.constant';
 import { v4 } from 'uuid';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { createuserID } from 'src/ids';
 
 @Injectable()
 export class UsersService {
@@ -28,10 +23,8 @@ export class UsersService {
     }
 
     const otp = v4();
-    const id = createuserID();
     const password = await hashPassword(createUserDto.password);
     const user = this.userRepository.create({
-      id,
       ...createUserDto,
       password,
       otp,
@@ -49,9 +42,9 @@ export class UsersService {
     });
     return user;
   }
-  
-  async update(id: string, updateUserDto: UpdateUserDto) {
-    return this.userRepository.update({ id }, updateUserDto);
+
+  async update(userId: number, updateUserDto: UpdateUserDto) {
+    return this.userRepository.update({ userId }, updateUserDto);
   }
   //
   //  remove(id: number) {

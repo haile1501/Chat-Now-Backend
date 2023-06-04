@@ -4,7 +4,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { UsersModule } from 'src/users/users.module';
 import { MessagesModule } from 'src/messages/messages.module';
-import { AuthsGateWay } from './auth.gateway';
 import { FriendsModule } from 'src/friends/friends.module';
 import { ConversationsModule } from 'src/conversations/conversations.module';
 
@@ -18,10 +17,13 @@ import { ConversationsModule } from 'src/conversations/conversations.module';
         signOptions: { expiresIn: process.env.JWT_EXPIRATION_TIME },
       }),
     }),
-    UsersModule,ConversationsModule,MessagesModule,FriendsModule,
+    UsersModule,
+    ConversationsModule,
+    MessagesModule,
+    FriendsModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService,AuthsGateWay],
+  providers: [AuthService],
   exports: [AuthService],
 })
 export class AuthModule {}

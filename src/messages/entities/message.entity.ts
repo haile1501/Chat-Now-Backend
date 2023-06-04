@@ -1,19 +1,21 @@
-import { Column, Entity, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
+import { Conversation } from 'src/conversations/entities/conversation.entity';
+import { User } from 'src/users/entities/user.entity';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Message {
-    @PrimaryColumn()
-    id : string;
+  @PrimaryGeneratedColumn()
+  messageId: number;
 
-    @Column()
-    context : string;
+  @Column()
+  content: string;
 
-    @Column()
-    timeSend: Date;
+  @Column()
+  timeSend: Date;
 
-    @Column()
-    userSendId : string;
+  @ManyToOne(() => Conversation, (conversation) => conversation.messages)
+  conversation: Conversation;
 
-    @Column()
-    roomId : string; 
+  @ManyToOne(() => User, (user) => user.messages)
+  user: User;
 }
