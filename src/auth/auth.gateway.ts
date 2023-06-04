@@ -12,6 +12,8 @@ import { CreateMessageDto } from "src/messages/dto/create-message.dto";
 import { ConversationDto } from "src/messages/dto/get-conversation.dto";
 import { sortBy } from 'lodash';
 import { ConversationsService } from "src/conversations/conversations.service";
+import { UpdateConversationMemberDto } from "src/conversation-members/dto/update-conversation-member.dto";
+import { ConversationMembersService } from "src/conversation-members/conversation-members.service";
 @WebSocketGateway({
     namespace: 'auths',
 })
@@ -23,7 +25,8 @@ export class AuthsGateWay implements OnGatewayConnection, OnGatewayDisconnect , 
         private readonly authService : AuthService,
         private readonly usersService : UsersService,
         private readonly friendService : FriendsService,
-        private readonly conversationService : ConversationsService){}
+        private readonly conversationService : ConversationsService,
+        private readonly cmService : ConversationMembersService){}
 
     @WebSocketServer() io: Namespace;
     afterInit(): void {
@@ -41,12 +44,12 @@ export class AuthsGateWay implements OnGatewayConnection, OnGatewayDisconnect , 
         console.log('User:', parseUser.id);
         client.data.user = JSON.parse(JSON.stringify(user));
         const friendReqList = await this.friendService.getFriendReqList(parseUser.id);
-        const f = JSON.parse(JSON.stringify(friendReqList));
+        const f = JSON.parse(JSON.stringify(friendReqList));            
         console.log('FriendList:', f);
         this.logger.debug(
             `userID: ${client.data.user.id} joined room with name: ${client.data.user.firstName}`,
         );
-    }
+    } 
 
     async handleDisconnect(client: SocketWithAuth) {
         const sockets = this.io.sockets;
@@ -60,6 +63,7 @@ export class AuthsGateWay implements OnGatewayConnection, OnGatewayDisconnect , 
         @MessageBody() room : ConversationDto,
         @ConnectedSocket() client : SocketWithAuth) :Promise<any>
     {
+
         if(!this.conversationService.find(room.roomId)){
             const newRoom = this.conversationService.create(room.roomId);
         }
@@ -71,9 +75,18 @@ export class AuthsGateWay implements OnGatewayConnection, OnGatewayDisconnect , 
         // client.emit('get_mess',conversation);
     }
 
+    @SubscribeMessage('add_member')
+    async add_member(
+        @MessageBody() userAdd : UpdateConversationMemberDto,
+        @ConnectedSocket() client : SocketWithAuth) : Promise<any> {
+            client.join(userAdd.conversationId);
+            const updateConversation = await this.cmService.addUser(userAdd);
+            this.io.to(userAdd.conversationId).emit('mess_update',updateConversation);
+    }
+
     @SubscribeMessage('send_mess')
     async send_mess(
-        @MessageBody() messageSend : CreateMessageDto ,
+        @MessageBody() messageSend : CreateMessageDto , 
         @ConnectedSocket() client : SocketWithAuth) :Promise<void> 
     {
         if(!this.conversationService.find(messageSend.roomId)){

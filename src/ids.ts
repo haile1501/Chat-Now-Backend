@@ -1,6 +1,6 @@
 import { customAlphabet, nanoid } from 'nanoid';
 
-export const createChatRoomID = customAlphabet(
+export const createConversationID= customAlphabet(
   '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ',
   6,
 );

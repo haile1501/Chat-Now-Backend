@@ -7,6 +7,7 @@ import { MessagesModule } from 'src/messages/messages.module';
 import { AuthsGateWay } from './auth.gateway';
 import { FriendsModule } from 'src/friends/friends.module';
 import { ConversationsModule } from 'src/conversations/conversations.module';
+import { ConversationMembersModule } from 'src/conversation-members/conversation-members.module';
 
 @Global()
 @Module({
@@ -18,7 +19,7 @@ import { ConversationsModule } from 'src/conversations/conversations.module';
         signOptions: { expiresIn: process.env.JWT_EXPIRATION_TIME },
       }),
     }),
-    UsersModule,ConversationsModule,MessagesModule,FriendsModule,
+    UsersModule,ConversationsModule,MessagesModule,FriendsModule,ConversationMembersModule,
   ],
   controllers: [AuthController],
   providers: [AuthService,AuthsGateWay],
