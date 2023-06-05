@@ -8,7 +8,7 @@ import { EMAIL_ALREADY_USED } from 'src/constant/error.constant';
 import { v4 } from 'uuid';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { pagination } from 'src/utils/pagination';
-
+import { Like } from 'typeorm';
 @Injectable()
 export class UsersService {
   constructor(
@@ -48,7 +48,8 @@ export class UsersService {
   //    return `This action removes a #${id} user`;
   //  }
   async findAll(page: number, size: number,type : string ,name : string ) {
-    return this.userRepository.find({...pagination(page, size)})
-  }
-  async 
+    
+    return this.userRepository.createQueryBuilder('user')
+    .where
+  
 }
