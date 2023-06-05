@@ -7,6 +7,7 @@ import { hashPassword } from 'src/utils/bcrypt.util';
 import { EMAIL_ALREADY_USED } from 'src/constant/error.constant';
 import { v4 } from 'uuid';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { pagination } from 'src/utils/pagination';
 
 @Injectable()
 export class UsersService {
@@ -32,10 +33,6 @@ export class UsersService {
     return this.userRepository.save(user);
   }
 
-  findAll() {
-    return this.userRepository.find();
-  }
-
   async findOne(email: string) {
     const user = await this.userRepository.findOneBy({
       email,
@@ -50,4 +47,8 @@ export class UsersService {
   //  remove(id: number) {
   //    return `This action removes a #${id} user`;
   //  }
+  async findAll(page: number, size: number,type : string ,name : string ) {
+    return this.userRepository.find({...pagination(page, size)})
+  }
+  async 
 }

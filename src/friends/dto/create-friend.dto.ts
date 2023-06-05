@@ -1,4 +1,4 @@
-import { IsNumber } from 'class-validator';
+import { IsDate, IsNumber } from 'class-validator';
 
 export class CreateFriendDto {
   @IsNumber()

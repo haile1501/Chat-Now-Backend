@@ -35,7 +35,6 @@ import { NotificationsModule } from './notifications/notifications.module';
     JwtModule,
     ConversationsModule,
     MessagesModule,
-    ConversationsModule,
     ChatModule,
     NotificationsModule,
   ],

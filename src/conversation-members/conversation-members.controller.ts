@@ -7,8 +7,8 @@ import { UpdateConversationMemberDto } from './dto/update-conversation-member.dt
 export class ConversationMembersController {
   constructor(private readonly conversationMembersService: ConversationMembersService) {}
 
-  @Post()
-  create(@Body() createConversationMemberDto: CreateConversationMemberDto) {
-    return this.conversationMembersService.createNewConversation(createConversationMemberDto);
-  }
+  // @Post()
+  // create(@Body() createConversationMemberDto: CreateConversationMemberDto) {
+  //   return this.conversationMembersService.createNewConversation(createConversationMemberDto);
+  // }
 }
