@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SignUpDto } from 'src/auth/dto/sign-up.dto';
@@ -11,7 +7,8 @@ import { hashPassword } from 'src/utils/bcrypt.util';
 import { EMAIL_ALREADY_USED } from 'src/constant/error.constant';
 import { v4 } from 'uuid';
 import { UpdateUserDto } from './dto/update-user.dto';
-
+import { pagination } from 'src/utils/pagination';
+import { Like } from 'typeorm';
 @Injectable()
 export class UsersService {
   constructor(
@@ -27,7 +24,6 @@ export class UsersService {
     }
 
     const otp = v4();
-
     const password = await hashPassword(createUserDto.password);
     const user = this.userRepository.create({
       ...createUserDto,
@@ -37,10 +33,6 @@ export class UsersService {
     return this.userRepository.save(user);
   }
 
-  findAll() {
-    return this.userRepository.find();
-  }
-
   async findOne(email: string) {
     const user = await this.userRepository.findOneBy({
       email,
@@ -48,11 +40,16 @@ export class UsersService {
     return user;
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
-    return this.userRepository.update({ id }, updateUserDto);
+  async update(userId: number, updateUserDto: UpdateUserDto) {
+    return this.userRepository.update({ userId }, updateUserDto);
   }
   //
   //  remove(id: number) {
   //    return `This action removes a #${id} user`;
   //  }
+  async findAll(page: number, size: number,type : string ,name : string ) {
+    
+    return this.userRepository.createQueryBuilder('user')
+    .where
+  
 }

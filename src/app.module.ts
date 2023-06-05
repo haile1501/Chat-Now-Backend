@@ -7,6 +7,12 @@ import { UsersModule } from './users/users.module';
 import configuration from './config/configuration';
 import { AuthModule } from './auth/auth.module';
 import { MailerModule, MailerOptions } from '@nestjs-modules/mailer';
+import { FriendsModule } from './friends/friends.module';
+import { JwtModule } from '@nestjs/jwt';
+import { MessagesModule } from './messages/messages.module';
+import { ConversationsModule } from './conversations/conversations.module';
+import { ChatModule } from './chat/chat.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -25,6 +31,12 @@ import { MailerModule, MailerOptions } from '@nestjs-modules/mailer';
     }),
     UsersModule,
     AuthModule,
+    FriendsModule,
+    JwtModule,
+    ConversationsModule,
+    MessagesModule,
+    ChatModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

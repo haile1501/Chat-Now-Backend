@@ -3,6 +3,9 @@ import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { UsersModule } from 'src/users/users.module';
+import { MessagesModule } from 'src/messages/messages.module';
+import { FriendsModule } from 'src/friends/friends.module';
+import { ConversationsModule } from 'src/conversations/conversations.module';
 
 @Global()
 @Module({
@@ -15,6 +18,9 @@ import { UsersModule } from 'src/users/users.module';
       }),
     }),
     UsersModule,
+    ConversationsModule,
+    MessagesModule,
+    FriendsModule,
   ],
   controllers: [AuthController],
   providers: [AuthService],
