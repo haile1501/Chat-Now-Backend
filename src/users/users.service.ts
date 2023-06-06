@@ -43,13 +43,28 @@ export class UsersService {
   async update(userId: number, updateUserDto: UpdateUserDto) {
     return this.userRepository.update({ userId }, updateUserDto);
   }
-  //
-  //  remove(id: number) {
-  //    return `This action removes a #${id} user`;
-  //  }
-  async findAll(page: number, size: number,type : string ,name : string ) {
-    
-    return this.userRepository.createQueryBuilder('user')
-    .where
-  
+
+  async findAll(page: number, size: number,type : string ,name : string,userId : number ) {
+    if(type === 'all'){
+      return this.userRepository.createQueryBuilder('user')
+    .where('user.firstName LIKE :name', { name : `%${name}%`})
+    .orWhere('user.lastName LIKE :name', { name : `%${name}%` })
+    .take(size)
+    .skip((page - 1) * size)
+    }
+    else{
+       return this.userRepository.createQueryBuilder('user')
+          .select()
+          .leftJoin('friend', 'friend', 'friend.senderId = user.userId OR friend.receiverId = user.userId')
+          .where('user.userId = :userId', { userId: userId })
+          .andWhere('(user.firstName LIKE :name OR user.lastName LIKE :name)', { name: `%${name}%` })
+          .take(size)
+          .skip((page - 1) * size)
+          .getMany()
+          ;
+    }
+  }
+  async getUserById(userId : number){
+    return await this.userRepository.findOneBy({userId});
+  }
 }
