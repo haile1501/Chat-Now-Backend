@@ -1,5 +1,6 @@
 import { Gender } from 'src/constant/constant';
 import { Conversation } from 'src/conversations/entities/conversation.entity';
+import { Friend } from 'src/friends/entities/friend.entity';
 import { Message } from 'src/messages/entities/message.entity';
 import {
   Column,
@@ -38,9 +39,17 @@ export class User {
   @Column({ nullable: true })
   otp: string;
 
+  @OneToMany(() => Friend, (friend) => friend.sender)
+  friendRequestsSent : Friend[];
+
+  @OneToMany(() => Friend, (friend) => friend.receiver)
+  friendRequestsReceived : Friend[];
+
   @ManyToMany(() => Conversation, (conversation) => conversation.users)
   conversations: Conversation[];
 
   @OneToMany(() => Message, (message) => message.user)
   messages: Message;
+
+
 }

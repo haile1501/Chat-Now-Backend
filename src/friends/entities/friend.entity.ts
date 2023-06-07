@@ -4,6 +4,7 @@ import {
   Column,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToOne,
   PrimaryColumn,
   PrimaryGeneratedColumn,
@@ -14,11 +15,11 @@ export class Friend {
   @PrimaryGeneratedColumn()
   friendId: number;
 
-  @OneToOne(() => User)
+  @ManyToOne(() => User ,(sender) => sender.friendRequestsSent)
   @JoinColumn({ name: 'senderId' })
   sender: User;
 
-  @OneToOne(() => User)
+  @ManyToOne(() => User , (receiver) => receiver.friendRequestsReceived)
   @JoinColumn({ name: 'receiverId' })
   receiver: User;
 
