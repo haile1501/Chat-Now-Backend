@@ -4,37 +4,59 @@ import { UpdateFriendDto } from './dto/update-friend.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Friend } from './entities/friend.entity';
 import { Repository } from 'typeorm';
-import { UsersService } from 'src/users/users.service';
-import { createFriendID } from 'src/utils/ids';
 import { FriendStatus } from 'src/constant/constant';
-import { User } from 'src/users/entities/user.entity';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class FriendsService {
   constructor(
     @InjectRepository(Friend)
     private readonly friendsRepository: Repository<Friend>,
+    private readonly userSevice : UsersService,
   ) {}
-  async createFriend(createFriendDto: CreateFriendDto) {
+  async createFriendReq(createFriendDto : CreateFriendDto , senderId : number){
     const requestTime = new Date();
     const status = FriendStatus.Waiting;
-    const newFriend = this.friendsRepository.create({
-      ...createFriendDto,
-      requestTime,
-      status,
-    });
-    return this.friendsRepository.save(newFriend);
-  }
-  async responseFriend(request_id: number , option : FriendStatus) {
-    const friend = await this.friendsRepository.findOne({where : {friendId : request_id}});
+    const sender = await this.userSevice.getUserById(senderId);
+    const receiver = await this.userSevice.getUserById(createFriendDto.receiverId);
+    const newFriendReq = await this.friendsRepository.create(
+      {
+        requestTime,
+        status,
+        sender,
+        receiver,
+      }
+    )
+    return this.friendsRepository.save(newFriendReq);
+  }  
+  async responseFriend(friendId: number , option : FriendStatus) {
+    const friend = await this.friendsRepository.findOne({where : {friendId : friendId}});
     friend.status = option;
     return this.friendsRepository.save(friend);
   }
-  async unfriend(request_id: number) {
-    const friendRemove = await this.friendsRepository.findOne({where : {friendId : request_id}});
+  async unfriend(friendId: number) {
+    const friendRemove = await this.friendsRepository.findOne({where : {friendId : friendId}});
     return this.friendsRepository.remove(friendRemove);
   }
-  remove(id: number) {
-    return `This action removes a #${id} friend`;
+  async findAllFriendReq(page : number , size : number,option : string, userId : number){
+    const status = FriendStatus.Waiting;
+    if(option === "sent"){
+      return await this.friendsRepository.createQueryBuilder('friend')
+      .leftJoinAndSelect("friend.receiver","user")
+      .select()
+      .where("\"senderId\" = :userId AND status = :status ", {userId : userId , status : status})
+      .take(size)
+      .skip((page - 1) * size)
+      .getMany()
+    }
+    else{
+      return await this.friendsRepository.createQueryBuilder('friend')
+      .leftJoinAndSelect("friend.sender","user")
+      .select()
+      .where("\"receiverId\" = :userId AND status = :status ", {userId : userId , status : status})
+      .take(size)
+      .skip((page - 1) * size)
+      .getMany()
+    }
   }
 }
