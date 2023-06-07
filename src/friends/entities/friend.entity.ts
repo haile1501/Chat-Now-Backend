@@ -15,11 +15,11 @@ export class Friend {
   @PrimaryGeneratedColumn()
   friendId: number;
 
-  @ManyToOne(() => User ,(sender) => sender.friendRequestsSent)
+  @ManyToOne(() => User ,(user) => user.friendRequestsSent)
   @JoinColumn({ name: 'senderId' })
   sender: User;
 
-  @ManyToOne(() => User , (receiver) => receiver.friendRequestsReceived)
+  @ManyToOne(() => User , (user) => user.friendRequestsReceived)
   @JoinColumn({ name: 'receiverId' })
   receiver: User;
 
