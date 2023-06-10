@@ -6,6 +6,6 @@ export class CreateConversationDto {
 
   @IsArray()
   @IsNumber({}, { each: true })
-  @ArrayMinSize(2)
+  @ArrayMinSize(1)
   userIds: number[];
 }
