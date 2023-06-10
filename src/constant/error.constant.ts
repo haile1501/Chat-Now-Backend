@@ -18,3 +18,7 @@ export const WRONG_VERIFICATION_LINK = new Error(
   10004,
   'Wrong verification link',
 );
+
+export const UNAVAILABLE_USER = new Error(10005, 'User not exist in database');
+export const UNAVAILABLE_GROUP = new Error(10006, 'Group not exist');
+export const UNAVAILABLE_USER_IN_CONVERSATION = new Error(10007, 'User not exist in conversation');
