@@ -46,9 +46,10 @@ export class ConversationsService {
     const type = userIds.length >= 2 ? ConversationType.Group : ConversationType.Private;
     const userCreate = await this.userService.getUserById(userCreateId)
     const users: User[] =[JSON.parse(JSON.stringify(userCreate))];
-    for (let i = 0; i < userIds.length; i ++){
-      users.push(await this.userService.getUserById(userIds[i]));
-    }
+    const getUserPromises = userIds.map(userId => this.userService.getUserById(userId)); 
+    const member = await Promise.all(getUserPromises);
+    console.log(member);
+    users.push(...member);
     const newConversation = await this.conversationRepository.create({
       conversationId:newConversationId,
       groupName,
