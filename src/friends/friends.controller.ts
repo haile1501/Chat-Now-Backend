@@ -33,7 +33,6 @@ export class FriendsController {
     const userId = request['user'].userId;
     return await this.friendsService.findAllFriendReq(page,size,option,userId);
   }
-
   @Delete(':requestId')
   async unFriendReq(@Param('requestId') friendId : number){
     return this.friendsService.unfriend(friendId);
