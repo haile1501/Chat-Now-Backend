@@ -50,10 +50,10 @@ export class User {
   @ManyToMany(() => Conversation, (conversation) => conversation.users)
   conversations: Conversation[];
 
-  @ManyToMany(() => NotificationEntity, notification => notification.users)
+  @OneToMany(() => NotificationEntity, notification => notification.user)
   notifications : NotificationEntity[];
 
   @OneToMany(() => Message, (message) => message.user)
-  messages: Message;
+  messages: Message[];
   
 }

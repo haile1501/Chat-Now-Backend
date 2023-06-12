@@ -9,6 +9,8 @@ import { v4 } from 'uuid';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { pagination } from 'src/utils/pagination';
 import { Like } from 'typeorm';
+import { NotiStatus } from 'src/constant/constant';
+import { NotificationEntity } from 'src/notifications/entities/notification.entity';
 @Injectable()
 export class UsersService {
   constructor(
@@ -66,5 +68,13 @@ export class UsersService {
   }
   async getUserById(userId : number){
     return await this.userRepository.findOneBy({userId});
+  }
+
+  async getNotification(userId : number){
+    return await this.userRepository.createQueryBuilder('user')
+    .leftJoinAndSelect("user.notifications","notification-entity")
+    .select()
+    .where("\"userUserId\" = :userId AND status = :status",{userId : userId, status : NotiStatus.NOT_READ_YET})
+    .getOne()
   }
 }
