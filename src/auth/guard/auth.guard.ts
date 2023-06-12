@@ -42,12 +42,10 @@ export class WsAuthGuard implements CanActivate {
   constructor(@Inject(AuthService) private readonly authService: AuthService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const client = context.switchToWs().getClient<Socket>();
-    const accessToken: string = client.handshake?.headers
-      ?.accessToken as string;
-
+    const client : Socket = context.switchToWs().getClient<Socket>();
+    const accessToken: string = client.handshake?.headers?.accessToken as string;
     try {
-      await this.authService.verifyAccessToken(accessToken);
+      const payload = await this.authService.verifyAccessToken(accessToken);
     } catch (err) {
       throw new WsException(err);
     }

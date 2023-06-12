@@ -1,9 +1,11 @@
 import { INestApplicationContext, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 import { IoAdapter } from '@nestjs/platform-socket.io';
-import { Server, ServerOptions } from 'socket.io';
+import { Server, ServerOptions, Socket } from 'socket.io';
+import { AuthService } from './auth/auth.service';
+import { JwtService } from '@nestjs/jwt';
 import { SocketWithAuth } from './users/guard-users';
+
 
 
 export class SocketIOAdapter extends IoAdapter {
@@ -34,28 +36,29 @@ export class SocketIOAdapter extends IoAdapter {
       cors,
     };
 
-    // const jwtService = this.app.get(JwtService);
+    const jwtService = this.app.get(JwtService);
+    const configService = this.app.get(ConfigService);
     const server: Server = super.createIOServer(port, optionsWithCORS);
-    // server.of('users').use(createTokenMiddleware(jwtService, this.logger));
+    server.of('chat').use(createTokenMiddleware(jwtService,configService, this.logger));
     return server;
   }
 }
-// const createTokenMiddleware =
-//   (jwtService: JwtService, logger: Logger) =>
-//   (socket: SocketWithAuth, next) => {
-//     // for Postman testing support, fallback to token header
-//     const token =
-//       socket.handshake.auth.token || socket.handshake.headers['token'];
-
-//     logger.debug(`Validating auth token before connection: ${token}`);
-//     const payload = jwtService.verify(token);
-//     logger.debug(`Validating auth token before connection: ${payload}`);
-//     try {
-
-//       const payload = jwtService.verify(token);
-//       logger.debug(`Validating auth token before connection: ${payload}`);
-//       next();
-//     } catch {
-//       next(new Error('FORBIDDEN'));
-//     }
-// };
+const createTokenMiddleware =
+  (jwtService: JwtService,configService: ConfigService, logger: Logger) =>
+  (socket: Socket, next) => {
+    // for Postman testing support, fallback to token header
+    const token =
+      socket.handshake.auth.token || socket.handshake.headers['token'];
+    const conversationId =
+      socket.handshake.query.conversationId || socket.handshake.headers['conversationId'];
+    try {
+      const payload = jwtService.verify(token, {
+        secret: configService.get<string>('JWT_SECRET'),
+      });
+      socket.data = payload;
+      socket.data.join_room = conversationId;
+      next();
+    } catch {
+      next(new Error('FORBIDDEN'));
+    }
+};
