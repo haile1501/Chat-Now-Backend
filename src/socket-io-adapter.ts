@@ -40,6 +40,8 @@ export class SocketIOAdapter extends IoAdapter {
     const configService = this.app.get(ConfigService);
     const server: Server = super.createIOServer(port, optionsWithCORS);
     server.of('chat').use(createTokenMiddleware(jwtService,configService, this.logger));
+    server.of('noti').use(createTokenMiddleware(jwtService,configService, this.logger));
+
     return server;
   }
 }

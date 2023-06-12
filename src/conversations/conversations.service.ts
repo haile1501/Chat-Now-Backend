@@ -18,8 +18,16 @@ export class ConversationsService {
   constructor(
     @InjectRepository(Conversation)
     private readonly conversationRepository: Repository<Conversation>,
-    private readonly userService : UsersService,
   ) {}
+
+  async getUserbyId(userId : number){
+    return await this.conversationRepository.createQueryBuilder()
+    .from(User,"user")
+    .innerJoinAndSelect("user.conversations","conversation")
+    .select("user")
+    .where("\"userId\" = :id ",{id : userId})
+    .getOne()
+  }
 
   async findConversation(page : number, size : number, userId : number){
     return await this.conversationRepository.createQueryBuilder("conversation")
@@ -44,9 +52,9 @@ export class ConversationsService {
   async createConversation(userCreateId : number ,groupName : string ,userIds : number[]){
     const newConversationId = createConversationID();
     const type = userIds.length >= 2 ? ConversationType.Group : ConversationType.Private;
-    const userCreate = await this.userService.getUserById(userCreateId)
+    const userCreate = await this.getUserbyId(userCreateId)
     const users: User[] =[JSON.parse(JSON.stringify(userCreate))];
-    const getUserPromises = userIds.map(userId => this.userService.getUserById(userId)); 
+    const getUserPromises = userIds.map(userId => this.getUserbyId(userId)); 
     const member = await Promise.all(getUserPromises);
     console.log(member);
     users.push(...member);
@@ -64,7 +72,7 @@ export class ConversationsService {
   }
 
   async addParticipants(conversationId : string , userAddedId : number){
-    const userAdded = await this.userService.getUserById(userAddedId);
+    const userAdded = await this.getUserbyId(userAddedId);
     if(!userAdded){
       throw new BadRequestException({...UNAVAILABLE_USER,"userId":userAddedId});
     }
@@ -77,7 +85,7 @@ export class ConversationsService {
   }
   
   async removeParticipants(conversationId : string , userRemovedId : number){
-    const userRemoved = await this.userService.getUserById(userRemovedId);
+    const userRemoved = await this.getUserbyId(userRemovedId);
     if(!userRemoved){
       throw new BadRequestException({...UNAVAILABLE_USER});
     }

@@ -2,9 +2,11 @@ import { Gender } from 'src/constant/constant';
 import { Conversation } from 'src/conversations/entities/conversation.entity';
 import { Friend } from 'src/friends/entities/friend.entity';
 import { Message } from 'src/messages/entities/message.entity';
+import { NotificationEntity } from 'src/notifications/entities/notification.entity';
 import {
   Column,
   Entity,
+  JoinTable,
   ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -48,8 +50,10 @@ export class User {
   @ManyToMany(() => Conversation, (conversation) => conversation.users)
   conversations: Conversation[];
 
+  @ManyToMany(() => NotificationEntity, notification => notification.users)
+  notifications : NotificationEntity[];
+
   @OneToMany(() => Message, (message) => message.user)
   messages: Message;
-
-
+  
 }
