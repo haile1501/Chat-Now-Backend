@@ -3,6 +3,10 @@ export enum Gender {
   Female = 'female',
   Other = 'other',
 }
+export enum OnlineStatus {
+  ON = 'Online',
+  OFF = 'Offline'
+}
 
 export enum ConversationType {
   Private = 'private',
