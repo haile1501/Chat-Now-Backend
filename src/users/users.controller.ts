@@ -38,4 +38,10 @@ export class UsersController {
   async getUserProFile(@Param('id') userId : number){
     return await this.userService.getUserById(userId);
   }
+
+  @Get('getNoti/noti')
+  async getNotification(@Req() request : Request){
+    const userId = request['user'].userId;
+    return await this.userService.getNotification(userId);
+  }
 }

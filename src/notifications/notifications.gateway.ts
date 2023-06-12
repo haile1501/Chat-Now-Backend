@@ -1,45 +1,33 @@
-import {
-  WebSocketGateway,
-  SubscribeMessage,
-  MessageBody,
-  WebSocketServer,
-} from '@nestjs/websockets';
-import { NotificationsService } from './notifications.service';
-import { CreateNotificationDto } from './dto/create-notification.dto';
-import { UpdateNotificationDto } from './dto/update-notification.dto';
-import { Server } from 'socket.io';
+import { WebSocketGateway, OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect, WebSocketServer } from "@nestjs/websockets";
+import { Namespace, Socket } from "socket.io";
+import { NotificationsService } from "./notifications.service";
+import { ConversationsService } from "src/conversations/conversations.service";
+import { MessagesService } from "src/messages/messages.service";
+import { FriendsService } from "src/friends/friends.service";
+import { UsersService } from "src/users/users.service";
 
-@WebSocketGateway()
-export class NotificationsGateway {
-  @WebSocketServer()
-  server: Server;
-  constructor(private readonly notificationsService: NotificationsService) {}
-
-  @SubscribeMessage('createNotification')
-  create(@MessageBody() createNotificationDto: CreateNotificationDto) {
-    return this.notificationsService.create(createNotificationDto);
+WebSocketGateway({
+  namespace: 'noti'
+})
+export class NotificationsGateway 
+implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
+  constructor(
+    private readonly notificationsService : NotificationsService,
+    private readonly conversationService : ConversationsService,    
+    private readonly messageService : MessagesService,
+    private readonly friendService : FriendsService,
+    private readonly userService : UsersService
+  ){}
+  @WebSocketServer() io: Namespace
+  afterInit():void {
+    console.log(`Websocket Gateway initialized.`)
   }
-
-  @SubscribeMessage('findAllNotifications')
-  findAll() {
-    return this.notificationsService.findAll();
+  async handleConnection(client: Socket) {
+    const updatedNotification = await this.userService.getNotification(client.data.userId)
+    client.emit('get',updatedNotification);   
   }
-
-  @SubscribeMessage('findOneNotification')
-  findOne(@MessageBody() id: number) {
-    return this.notificationsService.findOne(id);
-  }
-
-  @SubscribeMessage('updateNotification')
-  update(@MessageBody() updateNotificationDto: UpdateNotificationDto) {
-    return this.notificationsService.update(
-      updateNotificationDto.id,
-      updateNotificationDto,
-    );
-  }
-
-  @SubscribeMessage('removeNotification')
-  remove(@MessageBody() id: number) {
-    return this.notificationsService.remove(id);
+  async handleDisconnect(client: Socket) {
+      
   }
 }
