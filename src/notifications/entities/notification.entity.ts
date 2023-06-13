@@ -10,10 +10,10 @@ export class NotificationEntity {
   @Column({type : 'enum', enum : NotificationType})
   type : NotificationType;
   
-  @Column( {type :'enum', enum :NotiStatus})
+  @Column( {type :'enum', enum :NotiStatus,default : NotiStatus.NOT_READ_YET})
   status : NotiStatus;
 
-  @ManyToOne(() => User, (user) => user.messages)
+  @ManyToOne(() => User, (user) => user.notifications)
   user: User;
 }
 

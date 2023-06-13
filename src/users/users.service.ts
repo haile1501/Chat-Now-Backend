@@ -9,7 +9,7 @@ import { v4 } from 'uuid';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { pagination } from 'src/utils/pagination';
 import { Like } from 'typeorm';
-import { NotiStatus } from 'src/constant/constant';
+import { NotiStatus, OnlineStatus } from 'src/constant/constant';
 import { NotificationEntity } from 'src/notifications/entities/notification.entity';
 @Injectable()
 export class UsersService {
@@ -29,6 +29,7 @@ export class UsersService {
     const password = await hashPassword(createUserDto.password);
     const user = this.userRepository.create({
       ...createUserDto,
+      onlineStatus : OnlineStatus.OFF,
       password,
       otp,
     });
@@ -68,6 +69,9 @@ export class UsersService {
   }
   async getUserById(userId : number){
     return await this.userRepository.findOneBy({userId});
+  }
+  async changeStatusUser(userId : number,status : OnlineStatus){
+    return await this.userRepository.update(userId,{onlineStatus : status});
   }
 
   async getNotification(userId : number){

@@ -39,7 +39,6 @@ export class ChatGateWay
     ){
         const roomName = createMessageDto.conversationId;
         const updateConversation = await this.messageService.sendMess(createMessageDto.content,roomName,client.data as User); 
-        console.log(updateConversation);
         this.io.to(roomName).emit('join_room',updateConversation);
     }
 }

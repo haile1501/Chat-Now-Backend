@@ -6,6 +6,7 @@ import { Friend } from './entities/friend.entity';
 import { Repository } from 'typeorm';
 import { FriendStatus } from 'src/constant/constant';
 import { UsersService } from 'src/users/users.service';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class FriendsService {
@@ -58,5 +59,13 @@ export class FriendsService {
       .skip((page - 1) * size)
       .getMany()
     }
+  }
+  async findOneDetail(requestId : number){
+    const friend :Friend =  await this.friendsRepository.createQueryBuilder('friend')
+    .leftJoinAndSelect('friend.sender', 'user1')
+    .leftJoinAndSelect('friend.receiver', 'user2')
+    .where('friend.friendId = :friendId', { friendId: requestId })
+    .getOne()
+    return friend;
   }
 }
