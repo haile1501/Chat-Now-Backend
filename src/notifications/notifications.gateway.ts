@@ -12,6 +12,8 @@ import { emit } from "process";
 import { UpdateFriendDto } from "src/friends/dto/update-friend.dto";
 import { AddUserDto } from "src/conversations/dto/update-conversation.dto";
 import { AddUserSocketDto } from "src/conversations/dto/add-friend-socket.dto";
+import { CreateMessageDto } from "src/messages/dto/create-message.dto";
+import { Conversation } from "src/conversations/entities/conversation.entity";
 
 @WebSocketGateway()
 export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisconnect,OnGatewayInit
@@ -69,9 +71,42 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
       const conversation = await this.conversationService.findOne(addUserDto.conversationId);
       const users = conversation.users;
       for(let i = 0; i < users.length ; i++){
-        await this.notificationsService.createNoti(NotificationType.A_NEW_MEMBER_ADDED,users[i].userId);
+        if(users[i].userId != client.data.userId){
+          await this.notificationsService.createNoti(NotificationType.NEW_MESSAGE,users[i].userId);
+        }
       }
       const updatedNotification = await this.userService.getNotification(client.data.userId);
       this.io.to(client.data.email).emit('get',updatedNotification);
   }
+  @SubscribeMessage('leave-group')
+  async leaveGroup(
+    @MessageBody('conversationId') conversationId : string,
+    @ConnectedSocket() client : Socket, 
+  ){
+    await this.conversationService.removeParticipants(conversationId,client.data.userId);
+    const conversation = await this.conversationService.findOne(conversationId);
+    const users = conversation.users;
+    for(let i = 0; i < users.length ; i++){
+      if(users[i].userId != client.data.userId){
+        await this.notificationsService.createNoti(NotificationType.NEW_MESSAGE,users[i].userId);
+      }
+    }
+    const updatedNotification = await this.userService.getNotification(client.data.userId);
+    this.io.to(client.data.email).emit('get',updatedNotification);
+  }
+  @SubscribeMessage('send')
+    async sendMess(
+        @MessageBody('conversationId') conversationId : string,
+        @ConnectedSocket() client : Socket
+    ){
+      const conversation = await this.conversationService.findOne(conversationId);
+      const users = conversation.users;
+      for(let i = 0; i < users.length ; i++){
+        if(users[i].userId != client.data.userId){
+          await this.notificationsService.createNoti(NotificationType.NEW_MESSAGE,users[i].userId);
+        }
+      }
+      const updatedNotification = await this.userService.getNotification(client.data.userId);
+      this.io.to(client.data.email).emit('get',updatedNotification);
+    }
 }
