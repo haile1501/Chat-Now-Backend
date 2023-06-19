@@ -31,13 +31,13 @@ export class MessagesService {
       user,
       timeSend,
     });
-    await this.messagesRepository.save(newMess);
-    return this.messagesRepository.createQueryBuilder()
-    .select("conversation")
-    .from(Conversation,"conversation")
-    .innerJoinAndSelect("conversation.users" , "user")
-    .leftJoinAndSelect("user.messages","message")
-    .where("conversation.conversationId = :id", { id: conversationId })
-    .getOne()
+    return await this.messagesRepository.save(newMess);
+    // return this.messagesRepository.createQueryBuilder("message")
+    // .select("conversation")
+    // .from(Conversation,"conversation")
+    // .innerJoinAndSelect("conversation.users" , "user")
+    // .leftJoinAndSelect("user.messages","message")
+    // .where("conversation.conversationId = :id", { id: conversationId })
+    // .getOne()
   }
 }

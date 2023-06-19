@@ -22,6 +22,7 @@ export class ConversationsService {
   ) {}
 
   async findConversation(page : number, size : number, userId : number){
+    
     const conversations = await this.conversationRepository.createQueryBuilder("conversation")
     .innerJoinAndSelect("conversation.users" , "user")
     .leftJoinAndSelect("user.messages","message")
@@ -33,11 +34,10 @@ export class ConversationsService {
     let newObject : any[] = []
     for (let i = 0; i < conversations.length; i ++){
       let conversation = await this.findOne(conversations[i].conversationId);
-
+      let users = await this.findUserInConversation(conversations[i].conversationId)
       if(conversation){
         let lastMess = conversation.messages[conversation.messages.length-1];
-        let object = { ...conversation , lastMessage : lastMess};
-        
+        let object = { ...conversation , lastMessage : lastMess, member : users.users};
         newObject.push(object);
       }
     }
