@@ -46,8 +46,9 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
   ){
     await this.friendService.createFriendReq(createFriendReq,client.data.userId);
     const newNoti = await this.notificationsService.createNoti(NotificationType.NEW_FRIEND_REQUEST,createFriendReq.receiverId);
-    const updatedNotification = await this.userService.getNotification(client.data.email);
-    this.io.to(client.data.email).emit('get',updatedNotification);
+    const receiver = await this.userService.getUserById(createFriendReq.receiverId)
+    const updatedNotification = await this.userService.getNotification(receiver.userId);
+    this.io.to(receiver.email).emit('get',updatedNotification);
   }
   @SubscribeMessage('friend-response')
   async reponseFriendReq(
@@ -73,10 +74,11 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
       for(let i = 0; i < users.length ; i++){
         if(users[i].userId != client.data.userId){
           await this.notificationsService.createNoti(NotificationType.NEW_MESSAGE,users[i].userId);
+          const updatedNotification = await this.userService.getNotification(users[i].userId);
+          this.io.to(users[i].email).emit('get',updatedNotification);
+    
         }
       }
-      const updatedNotification = await this.userService.getNotification(client.data.userId);
-      this.io.to(client.data.email).emit('get',updatedNotification);
   }
   @SubscribeMessage('leave-group')
   async leaveGroup(
@@ -89,10 +91,10 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
     for(let i = 0; i < users.length ; i++){
       if(users[i].userId != client.data.userId){
         await this.notificationsService.createNoti(NotificationType.NEW_MESSAGE,users[i].userId);
+        const updatedNotification = await this.userService.getNotification(users[i].userId);
+        this.io.to(users[i].email).emit('get',updatedNotification);
       }
     }
-    const updatedNotification = await this.userService.getNotification(client.data.userId);
-    this.io.to(client.data.email).emit('get',updatedNotification);
   }
   @SubscribeMessage('send')
     async sendMess(
@@ -104,9 +106,9 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
       for(let i = 0; i < users.length ; i++){
         if(users[i].userId != client.data.userId){
           await this.notificationsService.createNoti(NotificationType.NEW_MESSAGE,users[i].userId);
+          const updatedNotification = await this.userService.getNotification(users[i].userId);
+          this.io.to(users[i].email).emit('get',updatedNotification);
         }
       }
-      const updatedNotification = await this.userService.getNotification(client.data.userId);
-      this.io.to(client.data.email).emit('get',updatedNotification);
     }
 }
