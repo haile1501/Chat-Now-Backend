@@ -41,6 +41,9 @@ export class User {
   @Column({ nullable: true })
   otp: string;
 
+  @Column({nullable :true})
+  avatar : string;
+
   @Column({type: 'enum' , enum : OnlineStatus})
   onlineStatus : OnlineStatus;
 
