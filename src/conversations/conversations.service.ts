@@ -62,9 +62,21 @@ export class ConversationsService {
       .select()
       .where('"conversationId" = :id', { id: conversationId })
       .getOne();
+    
     return conversation;
   }
 
+  async GetAll(conversationId : string, userId : number){
+    const conversation = await this.findOne(conversationId);
+    const messages = conversation.messages;
+    let object : any[] = [];
+    for (let i = 0; i < messages.length; i ++){
+      let isMine = messages[i].user.userId == userId ? true : false;
+      let x = {...messages[i], isMine : isMine};
+      object.push(x);
+    }
+    return object;
+  }
   async findUserInConversation(conversationId: string) {
     return await this.conversationRepository
       .createQueryBuilder('conversation')
