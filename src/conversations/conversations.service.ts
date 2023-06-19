@@ -35,6 +35,9 @@ export class ConversationsService {
     for (let i = 0; i < conversations.length; i ++){
       let conversation = await this.findOne(conversations[i].conversationId);
       let users = await this.findUserInConversation(conversations[i].conversationId)
+
+      let index = users.users.indexOf(await this.userService.getUserById(userId));
+      users.users.splice(index,1);
       if(conversation){
         let lastMess = conversation.messages[conversation.messages.length-1];
         let object = { ...conversation , lastMessage : lastMess, member : users.users};
