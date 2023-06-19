@@ -5,7 +5,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { HttpAuthGuard } from 'src/auth/guard/auth.guard';
 import { UsersService } from 'src/users/users.service';
 import { error } from 'console';
-import { UNAVAILABLE_GROUP, UNAVAILABLE_USER, UNAVAILABLE_USER_IN_CONVERSATION } from 'src/constant/error.constant';
+import {
+  UNAVAILABLE_GROUP,
+  UNAVAILABLE_USER,
+  UNAVAILABLE_USER_IN_CONVERSATION,
+} from 'src/constant/error.constant';
 import { throwError } from 'rxjs';
 import { forEach, last } from 'lodash';
 import { createConversationID } from 'src/utils/ids';
@@ -18,60 +22,73 @@ export class ConversationsService {
   constructor(
     @InjectRepository(Conversation)
     private readonly conversationRepository: Repository<Conversation>,
-    private readonly userService : UsersService,
+    private readonly userService: UsersService,
   ) {}
 
-  async findConversation(page : number, size : number, userId : number){
-    
-    const conversations = await this.conversationRepository.createQueryBuilder("conversation")
-    .innerJoinAndSelect("conversation.users" , "user")
-    .leftJoinAndSelect("user.messages","message")
-    .select()
-    .where("\"userId\" = :userId",{userId : userId})
-    .take(size)
-    .skip((page - 1) * size)
-    .getMany()
-    let newObject : any[] = []
-    for (let i = 0; i < conversations.length; i ++){
+  async findConversation(page: number, size: number, userId: number) {
+    const conversations = await this.conversationRepository
+      .createQueryBuilder('conversation')
+      .innerJoinAndSelect('conversation.users', 'user')
+      .leftJoinAndSelect('user.messages', 'message')
+      .select()
+      .where('"userId" = :userId', { userId: userId })
+      .take(size)
+      .skip((page - 1) * size)
+      .getMany();
+    let newObject: any[] = [];
+    for (let i = 0; i < conversations.length; i++) {
       let conversation = await this.findOne(conversations[i].conversationId);
-      let users = await this.findUserInConversation(conversations[i].conversationId)
+      let users = await this.findUserInConversation(
+        conversations[i].conversationId,
+      );
 
-      let index = users.users.indexOf(await this.userService.getUserById(userId));
-      users.users.splice(index,1);
-      if(conversation){
-        let lastMess = conversation.messages[conversation.messages.length-1];
-        let object = { ...conversation , lastMessage : lastMess, member : users.users};
+      if (conversation) {
+        let lastMess = conversation.messages[conversation.messages.length - 1];
+        let object = {
+          ...conversation,
+          lastMessage: lastMess,
+          member: users.users.filter((user) => user.userId !== userId),
+        };
         newObject.push(object);
       }
     }
     return newObject;
   }
-  async findOne(conversationId : string){
-    const conversation = await this.conversationRepository.createQueryBuilder("conversation")
-    .innerJoinAndSelect("conversation.messages" , "message")
-    .leftJoinAndSelect("message.user","user")
-    .select()
-    .where("\"conversationId\" = :id",{id : conversationId})
-    .getOne()
+  async findOne(conversationId: string) {
+    const conversation = await this.conversationRepository
+      .createQueryBuilder('conversation')
+      .innerJoinAndSelect('conversation.messages', 'message')
+      .leftJoinAndSelect('message.user', 'user')
+      .select()
+      .where('"conversationId" = :id', { id: conversationId })
+      .getOne();
     return conversation;
   }
 
-  async findUserInConversation(conversationId : string){
-    return await this.conversationRepository.createQueryBuilder("conversation")
-    .innerJoinAndSelect("conversation.users" , "user")
-    .select()
-    .where("\"conversationId\" = :id",{id : conversationId})
-    .getOne()
+  async findUserInConversation(conversationId: string) {
+    return await this.conversationRepository
+      .createQueryBuilder('conversation')
+      .innerJoinAndSelect('conversation.users', 'user')
+      .select()
+      .where('"conversationId" = :id', { id: conversationId })
+      .getOne();
   }
 
-  async createConversation(userCreateId : number ,groupName : string ,userIds : number[]){
+  async createConversation(
+    userCreateId: number,
+    groupName: string,
+    userIds: number[],
+  ) {
     const conversationId = createConversationID();
-    const type = userIds.length >= 2 ? ConversationType.Group : ConversationType.Private;
+    const type =
+      userIds.length >= 2 ? ConversationType.Group : ConversationType.Private;
     const userCreate = await this.userService.getUserById(userCreateId);
-    const users: User[] =[JSON.parse(JSON.stringify(userCreate))];
-    const getUserPromises = userIds.map(async userId =>await this.userService.getUserById(userId)); 
+    const users: User[] = [JSON.parse(JSON.stringify(userCreate))];
+    const getUserPromises = userIds.map(
+      async (userId) => await this.userService.getUserById(userId),
+    );
     const member = await Promise.all(getUserPromises);
-    
+
     users.push(...member);
     const newConversation = await this.conversationRepository.create({
       conversationId,
@@ -82,42 +99,48 @@ export class ConversationsService {
     return this.conversationRepository.save(newConversation);
   }
 
-  async leaveConversation(userId : number , conversationId :string){
-    return this.removeParticipants(conversationId,userId);
+  async leaveConversation(userId: number, conversationId: string) {
+    return this.removeParticipants(conversationId, userId);
   }
 
-  async addParticipants(conversationId : string , userAddedId : number){
+  async addParticipants(conversationId: string, userAddedId: number) {
     const userAdded = await this.userService.getUserById(userAddedId);
-    if(!userAdded){
-      throw new BadRequestException({...UNAVAILABLE_USER,"userId":userAddedId});
+    if (!userAdded) {
+      throw new BadRequestException({
+        ...UNAVAILABLE_USER,
+        userId: userAddedId,
+      });
     }
     const updatedConversation = await this.findOne(conversationId);
-    if(!updatedConversation){
-      throw new BadRequestException({...UNAVAILABLE_GROUP});
+    if (!updatedConversation) {
+      throw new BadRequestException({ ...UNAVAILABLE_GROUP });
     }
     updatedConversation.users.push(userAdded);
     return this.conversationRepository.save(updatedConversation);
   }
-  
-  async removeParticipants(conversationId : string , userRemovedId : number){
+
+  async removeParticipants(conversationId: string, userRemovedId: number) {
     const userRemoved = await this.userService.getUserById(userRemovedId);
-    if(!userRemoved){
-      throw new BadRequestException({...UNAVAILABLE_USER});
+    if (!userRemoved) {
+      throw new BadRequestException({ ...UNAVAILABLE_USER });
     }
     const updatedConversation = await this.findOne(conversationId);
-    if(!updatedConversation){
-      throw new BadRequestException({...UNAVAILABLE_GROUP});
+    if (!updatedConversation) {
+      throw new BadRequestException({ ...UNAVAILABLE_GROUP });
     }
-    if(!updatedConversation.users.find(user => user.userId === userRemovedId)){
-      throw new BadRequestException({...UNAVAILABLE_USER_IN_CONVERSATION});
+    if (
+      !updatedConversation.users.find((user) => user.userId === userRemovedId)
+    ) {
+      throw new BadRequestException({ ...UNAVAILABLE_USER_IN_CONVERSATION });
+    } else {
+      updatedConversation.users = updatedConversation.users.filter(
+        (user) => user.userId != userRemovedId,
+      );
+      return this.conversationRepository.save(updatedConversation);
     }
-    else{
-        updatedConversation.users = updatedConversation.users.filter((user) => user.userId != userRemovedId);
-        return this.conversationRepository.save(updatedConversation);
-    } 
   }
 
-  async updateConversation(conversationId : string, groupName : string){
-    return this.conversationRepository.update(conversationId,{groupName})
+  async updateConversation(conversationId: string, groupName: string) {
+    return this.conversationRepository.update(conversationId, { groupName });
   }
 }
