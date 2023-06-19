@@ -44,7 +44,7 @@ export class User {
   @Column({nullable :true})
   avatar : string;
 
-  @Column({type: 'enum' , enum : OnlineStatus})
+  @Column({type: 'enum' , enum : OnlineStatus, nullable : true})
   onlineStatus : OnlineStatus;
 
   @OneToMany(() => Friend, (friend) => friend.sender)
