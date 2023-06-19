@@ -68,7 +68,7 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
     @ConnectedSocket() client : Socket,
   ){
       const updateConversation = await this.conversationService.addParticipants(addUserDto.conversationId,addUserDto.userId);
-      const conversation = await this.conversationService.findOne(addUserDto.conversationId);
+      const conversation = await this.conversationService.findUserInConversation(addUserDto.conversationId);
       const users = conversation.users;
       for(let i = 0; i < users.length ; i++){
         if(users[i].userId != client.data.userId){
@@ -84,7 +84,7 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
     @ConnectedSocket() client : Socket, 
   ){
     await this.conversationService.removeParticipants(conversationId,client.data.userId);
-    const conversation = await this.conversationService.findOne(conversationId);
+    const conversation = await this.conversationService.findUserInConversation(conversationId);
     const users = conversation.users;
     for(let i = 0; i < users.length ; i++){
       if(users[i].userId != client.data.userId){
@@ -99,7 +99,7 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
         @MessageBody('conversationId') conversationId : string,
         @ConnectedSocket() client : Socket
     ){
-      const conversation = await this.conversationService.findOne(conversationId);
+      const conversation = await this.conversationService.findUserInConversation(conversationId);
       const users = conversation.users;
       for(let i = 0; i < users.length ; i++){
         if(users[i].userId != client.data.userId){
