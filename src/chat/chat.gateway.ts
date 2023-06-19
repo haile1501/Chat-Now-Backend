@@ -10,39 +10,35 @@ import { MessagesService } from "src/messages/messages.service";
 import { User } from "src/users/entities/user.entity";
 import { CreateConversationDto } from "src/conversations/dto/create-conversation.dto";
 
-@WebSocketGateway({
-    namespace: 'chat'
-})
-export class ChatGateWay 
-implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+@WebSocketGateway() 
+export class ChatGateWay
 {
+    @WebSocketServer() io;
+    afterInit(): void {
+      }
+    
     constructor(
         private readonly chatService : ChatService,
         private readonly conversationService : ConversationsService,    
         private readonly messageService : MessagesService,
     ){}
-    @WebSocketServer() io: Namespace
-    afterInit():void {
-        console.log(`Websocket Gateway initialized.`)
-    }
-
-    async handleConnection(client: Socket) {
-        const sockets = this.io.sockets;
-        const roomName = client.data.join_room;
-        await client.join(roomName);
-        const conversation = await this.conversationService.findOne(roomName);
-        this.io.to(roomName).emit('join_room',conversation);
-    }
-    async handleDisconnect(client: Socket) {
+    
+    @SubscribeMessage('join')
+    async joinRoom(
+        @MessageBody('conversationId') conversationId : string,
+        @ConnectedSocket() client : Socket 
+    ){
+        await client.join(conversationId);
+        const updatedConversation = await this.conversationService.findOne(conversationId);
+        this.io.to(conversationId).emit('join_room',updatedConversation);
     }
     @SubscribeMessage('send')
     async sendMess(
         @MessageBody() createMessageDto : CreateMessageDto,
         @ConnectedSocket() client : Socket
     ){
-        const roomName = client.data.join_room;
+        const roomName = createMessageDto.conversationId;
         const updateConversation = await this.messageService.sendMess(createMessageDto.content,roomName,client.data as User); 
-        console.log(updateConversation);
         this.io.to(roomName).emit('join_room',updateConversation);
     }
 }

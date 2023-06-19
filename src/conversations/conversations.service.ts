@@ -7,7 +7,7 @@ import { UsersService } from 'src/users/users.service';
 import { error } from 'console';
 import { UNAVAILABLE_GROUP, UNAVAILABLE_USER, UNAVAILABLE_USER_IN_CONVERSATION } from 'src/constant/error.constant';
 import { throwError } from 'rxjs';
-import { forEach } from 'lodash';
+import { forEach, last } from 'lodash';
 import { createConversationID } from 'src/utils/ids';
 import { ConversationType } from 'src/constant/constant';
 import { type } from 'os';
@@ -18,19 +18,11 @@ export class ConversationsService {
   constructor(
     @InjectRepository(Conversation)
     private readonly conversationRepository: Repository<Conversation>,
+    private readonly userService : UsersService,
   ) {}
 
-  async getUserbyId(userId : number){
-    return await this.conversationRepository.createQueryBuilder()
-    .from(User,"user")
-    .innerJoinAndSelect("user.conversations","conversation")
-    .select("user")
-    .where("\"userId\" = :id ",{id : userId})
-    .getOne()
-  }
-
   async findConversation(page : number, size : number, userId : number){
-    return await this.conversationRepository.createQueryBuilder("conversation")
+    const conversations = await this.conversationRepository.createQueryBuilder("conversation")
     .innerJoinAndSelect("conversation.users" , "user")
     .leftJoinAndSelect("user.messages","message")
     .select()
@@ -38,28 +30,48 @@ export class ConversationsService {
     .take(size)
     .skip((page - 1) * size)
     .getMany()
+    let newObject : any[] = []
+    for (let i = 0; i < conversations.length; i ++){
+      let conversation = await this.findOne(conversations[i].conversationId);
+
+      if(conversation){
+        let lastMess = conversation.messages[conversation.messages.length-1];
+        let object = { ...conversation , lastMessage : lastMess};
+        
+        newObject.push(object);
+      }
+    }
+    return newObject;
+  }
+  async findOne(conversationId : string){
+    const conversation = await this.conversationRepository.createQueryBuilder("conversation")
+    .innerJoinAndSelect("conversation.messages" , "message")
+    .leftJoinAndSelect("message.user","user")
+    .select()
+    .where("\"conversationId\" = :id",{id : conversationId})
+    .getOne()
+    return conversation;
   }
 
-  async findOne(conversationId : string){
+  async findUserInConversation(conversationId : string){
     return await this.conversationRepository.createQueryBuilder("conversation")
     .innerJoinAndSelect("conversation.users" , "user")
-    .leftJoinAndSelect("user.messages","message")
     .select()
     .where("\"conversationId\" = :id",{id : conversationId})
     .getOne()
   }
 
   async createConversation(userCreateId : number ,groupName : string ,userIds : number[]){
-    const newConversationId = createConversationID();
+    const conversationId = createConversationID();
     const type = userIds.length >= 2 ? ConversationType.Group : ConversationType.Private;
-    const userCreate = await this.getUserbyId(userCreateId)
+    const userCreate = await this.userService.getUserById(userCreateId);
     const users: User[] =[JSON.parse(JSON.stringify(userCreate))];
-    const getUserPromises = userIds.map(userId => this.getUserbyId(userId)); 
+    const getUserPromises = userIds.map(async userId =>await this.userService.getUserById(userId)); 
     const member = await Promise.all(getUserPromises);
-    console.log(member);
+    
     users.push(...member);
     const newConversation = await this.conversationRepository.create({
-      conversationId:newConversationId,
+      conversationId,
       groupName,
       type,
       users,
@@ -72,7 +84,7 @@ export class ConversationsService {
   }
 
   async addParticipants(conversationId : string , userAddedId : number){
-    const userAdded = await this.getUserbyId(userAddedId);
+    const userAdded = await this.userService.getUserById(userAddedId);
     if(!userAdded){
       throw new BadRequestException({...UNAVAILABLE_USER,"userId":userAddedId});
     }
@@ -85,7 +97,7 @@ export class ConversationsService {
   }
   
   async removeParticipants(conversationId : string , userRemovedId : number){
-    const userRemoved = await this.getUserbyId(userRemovedId);
+    const userRemoved = await this.userService.getUserById(userRemovedId);
     if(!userRemoved){
       throw new BadRequestException({...UNAVAILABLE_USER});
     }

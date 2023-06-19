@@ -39,8 +39,8 @@ export class SocketIOAdapter extends IoAdapter {
     const jwtService = this.app.get(JwtService);
     const configService = this.app.get(ConfigService);
     const server: Server = super.createIOServer(port, optionsWithCORS);
-    server.of('chat').use(createTokenMiddleware(jwtService,configService, this.logger));
-    server.of('noti').use(createTokenMiddleware(jwtService,configService, this.logger));
+    server.use(createTokenMiddleware(jwtService,configService, this.logger));
+    
 
     return server;
   }
@@ -51,14 +51,11 @@ const createTokenMiddleware =
     // for Postman testing support, fallback to token header
     const token =
       socket.handshake.auth.token || socket.handshake.headers['token'];
-    const conversationId =
-      socket.handshake.query.conversationId || socket.handshake.headers['conversationId'];
     try {
       const payload = jwtService.verify(token, {
         secret: configService.get<string>('JWT_SECRET'),
       });
       socket.data = payload;
-      socket.data.join_room = conversationId;
       next();
     } catch {
       next(new Error('FORBIDDEN'));

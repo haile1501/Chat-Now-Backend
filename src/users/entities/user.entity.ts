@@ -1,4 +1,4 @@
-import { Gender } from 'src/constant/constant';
+import { Gender, OnlineStatus } from 'src/constant/constant';
 import { Conversation } from 'src/conversations/entities/conversation.entity';
 import { Friend } from 'src/friends/entities/friend.entity';
 import { Message } from 'src/messages/entities/message.entity';
@@ -40,6 +40,12 @@ export class User {
 
   @Column({ nullable: true })
   otp: string;
+
+  @Column({nullable :true})
+  avatar : string;
+
+  @Column({type: 'enum' , enum : OnlineStatus})
+  onlineStatus : OnlineStatus;
 
   @OneToMany(() => Friend, (friend) => friend.sender)
   friendRequestsSent : Friend[];
