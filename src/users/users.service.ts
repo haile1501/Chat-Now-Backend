@@ -11,10 +11,12 @@ import { pagination } from 'src/utils/pagination';
 import { Like } from 'typeorm';
 import { NotiStatus, OnlineStatus } from 'src/constant/constant';
 import { NotificationEntity } from 'src/notifications/entities/notification.entity';
+import { CloudinaryService } from 'nestjs-cloudinary';
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
+    private readonly cloudinaryService : CloudinaryService,
   ) {}
 
   async createUser(createUserDto: SignUpDto) {
@@ -80,5 +82,16 @@ export class UsersService {
     .select()
     .where("\"userUserId\" = :userId AND status = :status",{userId : userId, status : NotiStatus.NOT_READ_YET})
     .getOne()
+  }
+  async uploadAvatar(file : Express.Multer.File, userId : number){
+    const image = await this.cloudinaryService.uploadFile(file);
+    const user = await this.getUserById(userId);
+    return await this.userRepository.update(user,{avatar : image.public_id})
+  }
+
+  async getAvatarUrl(userId : number){
+    const user = await this.getUserById(userId);
+    const image = await this.cloudinaryService.cloudinary.api.resource(user.avatar);
+    return image.secure_url;
   }
 }
