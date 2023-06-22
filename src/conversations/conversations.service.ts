@@ -47,6 +47,7 @@ export class ConversationsService {
         let object = {
           ...conversation,
           lastMessage: lastMess,
+          isMyLastMessage: lastMess.user.userId === userId,
           member: users.users.filter((user) => user.userId !== userId),
         };
         newObject.push(object);
@@ -62,17 +63,17 @@ export class ConversationsService {
       .select()
       .where('"conversationId" = :id', { id: conversationId })
       .getOne();
-    
+
     return conversation;
   }
 
-  async GetAll(conversationId : string, userId : number){
+  async GetAll(conversationId: string, userId: number) {
     const conversation = await this.findOne(conversationId);
     const messages = conversation.messages;
-    let object : any[] = [];
-    for (let i = 0; i < messages.length; i ++){
+    let object: any[] = [];
+    for (let i = 0; i < messages.length; i++) {
       let isMine = messages[i].user.userId == userId ? true : false;
-      let x = {...messages[i], isMine : isMine};
+      let x = { ...messages[i], isMine: isMine };
       object.push(x);
     }
     return object;
