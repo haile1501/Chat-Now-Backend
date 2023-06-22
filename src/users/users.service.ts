@@ -52,12 +52,15 @@ export class UsersService {
   async findAll(page: number, size: number,type : string ,name : string,userId : number ) {
     if(type === 'all'){
       return this.userRepository.createQueryBuilder('user')
+    .select()
     .where('user.firstName LIKE :name', { name : `%${name}%`})
     .orWhere('user.lastName LIKE :name', { name : `%${name}%` })
     .take(size)
     .skip((page - 1) * size)
+    .getMany();
     }
     else{
+      
        return this.userRepository.createQueryBuilder('user')
           .select()
           .leftJoin('friend', 'friend', 'friend.senderId = user.userId OR friend.receiverId = user.userId')
@@ -65,8 +68,7 @@ export class UsersService {
           .andWhere('(user.firstName LIKE :name OR user.lastName LIKE :name)', { name: `%${name}%` })
           .take(size)
           .skip((page - 1) * size)
-          .getMany()
-          ;
+          .getMany();
     }
   }
   async getUserById(userId : number){
