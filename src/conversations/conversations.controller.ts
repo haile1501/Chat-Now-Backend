@@ -60,6 +60,7 @@ export class ConversationsController {
       user,
       createConversationDto.groupName,
       createConversationDto.userIds,
+      createConversationDto.type
     );
   }
 

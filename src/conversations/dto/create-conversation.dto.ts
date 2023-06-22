@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ArrayMinSize, IsArray, IsNumber, IsString } from 'class-validator';
+import { ArrayMinSize, IsArray, IsEnum, IsNumber, IsString } from 'class-validator';
+import { ConversationType } from 'src/constant/constant';
 
 export class CreateConversationDto {
   @ApiProperty()
@@ -9,8 +10,13 @@ export class CreateConversationDto {
   @ApiProperty({
     example : [1,2]
   })
+
   @IsArray()
   @IsNumber({}, { each: true })
   @ArrayMinSize(1)
   userIds: number[];
+
+  @ApiProperty()
+  @IsEnum(ConversationType)
+  type : ConversationType
 }

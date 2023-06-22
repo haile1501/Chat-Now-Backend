@@ -90,25 +90,41 @@ export class ConversationsService {
     userCreateId: number,
     groupName: string,
     userIds: number[],
+    type : ConversationType
   ) {
-    const conversationId = createConversationID();
-    const type =
-      userIds.length >= 2 ? ConversationType.Group : ConversationType.Private;
-    const userCreate = await this.userService.getUserById(userCreateId);
-    const users: User[] = [JSON.parse(JSON.stringify(userCreate))];
-    const getUserPromises = userIds.map(
-      async (userId) => await this.userService.getUserById(userId),
-    );
-    const member = await Promise.all(getUserPromises);
+    const privateConversation = await this.conversationRepository.createQueryBuilder('conversation')
+    .select()
+    .leftJoinAndSelect("conversation.users","user1")
+    .leftJoinAndSelect("conversation.users","user2")
+    .where("user1.userId =:user1 AND user2.userId = :user2 AND type = 'private'",{user1 : userCreateId, user2 : userIds[0]})
+    .getMany()
 
-    users.push(...member);
-    const newConversation = await this.conversationRepository.create({
-      conversationId,
-      groupName,
-      type,
-      users,
-    });
-    return this.conversationRepository.save(newConversation);
+    if(type == ConversationType.Private && privateConversation.length != 0 && userIds.length == 1){
+        return privateConversation;
+    }
+    else{
+      if(userIds.length != 1){
+        throw new Error("type private must have only 2 member");
+      }
+      else{
+        const conversationId = createConversationID();
+        const userCreate = await this.userService.getUserById(userCreateId);
+        const users: User[] = [JSON.parse(JSON.stringify(userCreate))];
+        const getUserPromises = userIds.map(
+          async (userId) => await this.userService.getUserById(userId),
+        );
+        const member = await Promise.all(getUserPromises);
+    
+        users.push(...member);
+        const newConversation = await this.conversationRepository.create({
+          conversationId,
+          groupName,
+          type,
+          users,
+        });
+        return this.conversationRepository.save(newConversation);
+      }
+    }
   }
 
   async leaveConversation(userId: number, conversationId: string) {
