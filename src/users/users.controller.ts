@@ -9,6 +9,8 @@ import {
   UseGuards,
   Query,
   Req,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 
@@ -21,6 +23,8 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { request } from 'http';
 
 @ApiTags('user')
 @ApiBearerAuth()
@@ -55,5 +59,19 @@ export class UsersController {
   @Get(':id')
   async getUserProFile(@Param('id') userId: number) {
     return await this.userService.getUserById(userId);
+  }
+
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Req() request: Request,
+  ) {
+    const userId = request['user'].userId;
+    return await this.userService.uploadAvatar(file, userId);
+  }
+  @Get('getAvatar/:id')
+  async getAvatarUrl(@Param('id') userId: number) {
+    return await this.userService.getAvatarUrl(userId);
   }
 }
