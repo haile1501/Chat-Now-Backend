@@ -93,11 +93,13 @@ export class ConversationsController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 200, description: 'OK' })
   @Get('/:id/message')
-  async getAllMess(@Param('id') conversationId: string, @Req() request : Request) {
+  async getAllMess(
+    @Param('id') conversationId: string,
+    @Req() request: Request,
+  ) {
     const user = request['user'].userId;
-    return await this.conversationsService.GetAll(conversationId,user);
+    return await this.conversationsService.GetAll(conversationId, user);
   }
-
 
   @ApiOperation({ summary: 'update conversation' })
   @ApiResponse({ status: 400, description: 'forbiden.' })
@@ -143,6 +145,4 @@ export class ConversationsController {
       userId,
     );
   }
-
-
 }

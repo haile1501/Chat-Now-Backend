@@ -29,7 +29,7 @@ export class UsersService {
     const password = await hashPassword(createUserDto.password);
     const user = this.userRepository.create({
       ...createUserDto,
-      onlineStatus : OnlineStatus.OFF,
+      onlineStatus: OnlineStatus.OFF,
       password,
       otp,
     });
@@ -47,38 +47,55 @@ export class UsersService {
     return this.userRepository.update({ userId }, updateUserDto);
   }
 
-  async findAll(page: number, size: number,type : string ,name : string,userId : number ) {
-    if(type === 'all'){
-      return this.userRepository.createQueryBuilder('user')
-    .where('user.firstName LIKE :name', { name : `%${name}%`})
-    .orWhere('user.lastName LIKE :name', { name : `%${name}%` })
-    .take(size)
-    .skip((page - 1) * size)
-    }
-    else{
-       return this.userRepository.createQueryBuilder('user')
-          .select()
-          .leftJoin('friend', 'friend', 'friend.senderId = user.userId OR friend.receiverId = user.userId')
-          .where('user.userId = :userId', { userId: userId })
-          .andWhere('(user.firstName LIKE :name OR user.lastName LIKE :name)', { name: `%${name}%` })
-          .take(size)
-          .skip((page - 1) * size)
-          .getMany()
-          ;
+  async findAll(
+    page: number,
+    size: number,
+    type: string,
+    name: string = '',
+    userId: number,
+  ) {
+    if (type === 'all') {
+      return this.userRepository
+        .createQueryBuilder('user')
+        .where('user.firstName LIKE :name', { name: `%${name}%` })
+        .orWhere('user.lastName LIKE :name', { name: `%${name}%` })
+        .take(size)
+        .skip((page - 1) * size)
+        .getMany();
+    } else {
+      return this.userRepository
+        .createQueryBuilder('user')
+        .select()
+        .leftJoin(
+          'friend',
+          'friend',
+          'friend.senderId = user.userId OR friend.receiverId = user.userId',
+        )
+        .where('user.userId = :userId', { userId: userId })
+        .andWhere('(user.firstName LIKE :name OR user.lastName LIKE :name)', {
+          name: `%${name}%`,
+        })
+        .take(size)
+        .skip((page - 1) * size)
+        .getMany();
     }
   }
-  async getUserById(userId : number){
-    return await this.userRepository.findOneBy({userId});
+  async getUserById(userId: number) {
+    return await this.userRepository.findOneBy({ userId });
   }
-  async changeStatusUser(userId : number,status : OnlineStatus){
-    return await this.userRepository.update(userId,{onlineStatus : status});
+  async changeStatusUser(userId: number, status: OnlineStatus) {
+    return await this.userRepository.update(userId, { onlineStatus: status });
   }
 
-  async getNotification(userId : number){
-    return await this.userRepository.createQueryBuilder('user')
-    .leftJoinAndSelect("user.notifications","notification-entity")
-    .select()
-    .where("\"userUserId\" = :userId AND status = :status",{userId : userId, status : NotiStatus.NOT_READ_YET})
-    .getOne()
+  async getNotification(userId: number) {
+    return await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.notifications', 'notification-entity')
+      .select()
+      .where('"userUserId" = :userId AND status = :status', {
+        userId: userId,
+        status: NotiStatus.NOT_READ_YET,
+      })
+      .getOne();
   }
 }
