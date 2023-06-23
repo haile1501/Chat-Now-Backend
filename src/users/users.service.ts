@@ -57,13 +57,15 @@ export class UsersService {
     userId: number,
   ) {
     if (type === 'all') {
-      return this.userRepository
+      const all = await this.userRepository
         .createQueryBuilder('user')
         .where('user.firstName LIKE :name', { name: `%${name}%` })
         .orWhere('user.lastName LIKE :name', { name: `%${name}%` })
         .take(size)
         .skip((page - 1) * size)
         .getMany();
+      const list = all.filter((user) => user.userId !== userId);
+      return list;
     } else {
       return this.userRepository
         .createQueryBuilder('user')

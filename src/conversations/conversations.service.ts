@@ -14,7 +14,7 @@ import { throwError } from 'rxjs';
 import { forEach, last } from 'lodash';
 import { createConversationID } from 'src/utils/ids';
 import { ConversationType } from 'src/constant/constant';
-import { type } from 'os';
+import { sortBy } from 'lodash';
 import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
@@ -44,16 +44,19 @@ export class ConversationsService {
 
       if (conversation) {
         let lastMess = conversation.messages[conversation.messages.length - 1];
+        let lastSend = lastMess.timeSend;
         let object = {
           ...conversation,
           lastMessage: lastMess,
           isMyLastMessage: lastMess.user.userId === userId,
           member: users.users.filter((user) => user.userId !== userId),
+          timeSendLast : lastSend,
         };
         newObject.push(object);
       }
     }
-    return newObject;
+    const list = sortBy(newObject,['timeSendLast']).reverse()
+    return list;
   }
   async findOne(conversationId: string) {
     const conversation = await this.conversationRepository
