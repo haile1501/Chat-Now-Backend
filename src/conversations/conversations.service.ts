@@ -115,11 +115,11 @@ export class ConversationsService {
         "user1.userId =:user1 AND user2.userId = :user2 AND type = 'private'",
         { user1: userCreateId, user2: userIds[0] },
       )
-      .getMany();
+      .getOne();
 
     if (
       type == ConversationType.Private &&
-      privateConversation.length != 0 &&
+      privateConversation &&
       userIds.length == 1
     ) {
       return privateConversation;
