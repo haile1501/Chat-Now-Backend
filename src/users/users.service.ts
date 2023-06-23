@@ -59,8 +59,8 @@ export class UsersService {
     if (type === 'all') {
       return this.userRepository
         .createQueryBuilder('user')
-        .where('user.firstName LIKE :name', { name: `%${name}%` })
-        .orWhere('user.lastName LIKE :name', { name: `%${name}%` })
+        .where('user.firstName ILIKE :name', { name: `%${name}%` })
+        .orWhere('user.lastName ILIKE :name', { name: `%${name}%` })
         .take(size)
         .skip((page - 1) * size)
         .getMany();
