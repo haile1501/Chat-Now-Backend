@@ -61,7 +61,7 @@ export class ConversationsService {
   async findOne(conversationId: string) {
     const conversation = await this.conversationRepository
       .createQueryBuilder('conversation')
-      .innerJoinAndSelect('conversation.messages', 'message')
+      .leftJoinAndSelect('conversation.messages', 'message')
       .leftJoinAndSelect('message.user', 'user')
       .select()
       .where('"conversationId" = :id', { id: conversationId })
