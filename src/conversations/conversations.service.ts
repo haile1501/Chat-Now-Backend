@@ -41,35 +41,34 @@ export class ConversationsService {
       let users = await this.findUserInConversation(
         conversations[i].conversationId,
       );
-      if(conversation.messages.length != 0){
-          let lastMess = conversation.messages[conversation.messages.length - 1];
-          let lastSend = lastMess.timeSend;
-          let object = {
-            ...conversation,
-            lastMessage: lastMess,
-            isMyLastMessage: lastMess.user.userId === userId,
-            member: users.users.filter((user) => user.userId !== userId),
-            timeSendLast : lastSend,
-          }
-          newObject.push(object);
-        }
-      else {
-          let lastMess = "";
-          let lastSend = -1;
-          let object = {
-            ...conversation,
-            lastMessage: lastMess,
-            isMyLastMessage: false,
-            member: users.users.filter((user) => user.userId !== userId),
-            timeSendLast : lastSend,
-          }
-          newObject.push(object);
-        }
+      if (conversation.messages.length != 0) {
+        let lastMess = conversation.messages[conversation.messages.length - 1];
+        let lastSend = lastMess.timeSend;
+        let object = {
+          ...conversation,
+          lastMessage: lastMess,
+          isMyLastMessage: lastMess.user.userId === userId,
+          member: users.users.filter((user) => user.userId !== userId),
+          timeSendLast: lastSend,
+        };
+        newObject.push(object);
+      } else if (conversation.type === ConversationType.Group) {
+        let lastMess = null;
+        let lastSend = -1;
+        let object = {
+          ...conversation,
+          lastMessage: lastMess,
+          isMyLastMessage: false,
+          member: users.users.filter((user) => user.userId !== userId),
+          timeSendLast: lastSend,
+        };
+        newObject.push(object);
       }
-      const list = sortBy(newObject,['timeSendLast']).reverse()
-      return list;
     }
-async findOne(conversationId: string) {
+    const list = sortBy(newObject, ['timeSendLast']).reverse();
+    return list;
+  }
+  async findOne(conversationId: string) {
     const conversation = await this.conversationRepository
       .createQueryBuilder('conversation')
       .leftJoinAndSelect('conversation.messages', 'message')
@@ -125,7 +124,7 @@ async findOne(conversationId: string) {
     ) {
       return privateConversation;
     } else {
-      if (userIds.length != 1) {
+      if (userIds.length != 1 && type === ConversationType.Private) {
         throw new Error('type private must have only 2 member');
       } else {
         const conversationId = createConversationID();
