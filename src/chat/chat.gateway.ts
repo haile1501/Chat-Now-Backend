@@ -53,5 +53,20 @@ export class ChatGateWay {
       client.data as User,
     );
     client.to(roomName).emit('receive', updateConversation);
+    const conversation = await this.conversationService.fineOneInDetailed(
+      roomName,
+      client.data.userId,
+    );
+    const users = conversation.member;
+    for (let i = 0; i < users.length; i++) {
+      if (users[i].userId != client.data.userId) {
+        let receiveConversation =
+          await this.conversationService.fineOneInDetailed(
+            roomName,
+            users[i].userId,
+          );
+        this.io.to(users[i].email).emit('noti:receive', receiveConversation);
+      }
+    }
   }
 }

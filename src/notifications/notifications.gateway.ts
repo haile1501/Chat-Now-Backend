@@ -100,7 +100,9 @@ export class NotificationsGateway
     const updatedNotification = await this.userService.getNotification(
       client.data.email,
     );
-    this.io.to(client.data.email).emit('noti:friend-response', updatedNotification);
+    this.io
+      .to(client.data.email)
+      .emit('noti:friend-response', updatedNotification);
   }
   @SubscribeMessage('join-group')
   async addedToGroup(
@@ -150,28 +152,30 @@ export class NotificationsGateway
         const updatedNotification = await this.userService.getNotification(
           users[i].userId,
         );
-        this.io.to(users[i].email).emit('noti:leave-group', updatedNotification);
+        this.io
+          .to(users[i].email)
+          .emit('noti:leave-group', updatedNotification);
       }
     }
   }
-  @SubscribeMessage('send')
-    async sendMess(
-        @MessageBody('conversationId') conversationId : string,
-        @ConnectedSocket() client : Socket
-    ){
-      const conversation = await this.conversationService.fineOneInDetailed(conversationId,client.data.userId);
-      const users = conversation.member;
-      for(let i = 0; i < users.length ; i++){
-        if(users[i].userId != client.data.userId){
-          await this.notificationsService.createNoti(NotificationType.NEW_MESSAGE,users[i].userId);
-          let receiveConversation = await this.conversationService.fineOneInDetailed(conversationId,users[i].userId);
-          const updatedNotification = await this.userService.getNotification(users[i].userId);
-          const notificationDetail = {
-            ...updatedNotification,
-            ...receiveConversation
-          }
-          this.io.to(users[i].email).emit('noti:receive',notificationDetail);
-        }
-      }
-  }
+  // @SubscribeMessage('send')
+  //   async sendMess(
+  //       @MessageBody('conversationId') conversationId : string,
+  //       @ConnectedSocket() client : Socket
+  //   ){
+  //     const conversation = await this.conversationService.fineOneInDetailed(conversationId,client.data.userId);
+  //     const users = conversation.member;
+  //     for(let i = 0; i < users.length ; i++){
+  //       if(users[i].userId != client.data.userId){
+  //         await this.notificationsService.createNoti(NotificationType.NEW_MESSAGE,users[i].userId);
+  //         let receiveConversation = await this.conversationService.fineOneInDetailed(conversationId,users[i].userId);
+  //         const updatedNotification = await this.userService.getNotification(users[i].userId);
+  //         const notificationDetail = {
+  //           ...updatedNotification,
+  //           ...receiveConversation
+  //         }
+  //         this.io.to(users[i].email).emit('noti:receive',notificationDetail);
+  //       }
+  //     }
+  // }
 }
