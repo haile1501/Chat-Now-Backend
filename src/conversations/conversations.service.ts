@@ -69,17 +69,17 @@ export class ConversationsService {
       const list = sortBy(newObject,['timeSendLast']).reverse()
       return list;
     }
+async findOne(conversationId: string) {
+    const conversation = await this.conversationRepository
+      .createQueryBuilder('conversation')
+      .leftJoinAndSelect('conversation.messages', 'message')
+      .leftJoinAndSelect('message.user', 'user')
+      .select()
+      .where('"conversationId" = :id', { id: conversationId })
+      .getOne();
 
-  async findOne(conversationId: string) {
-      const conversation = await this.conversationRepository
-        .createQueryBuilder('conversation')
-        .leftJoinAndSelect('conversation.messages', 'message')
-        .leftJoinAndSelect('message.user', 'user')
-        .select()
-        .where('"conversationId" = :id', { id: conversationId })
-        .getOne();
-      return conversation;
-    }
+    return conversation;
+  }
 
   async fineOneInDetailed(conversationId : string, userId : number){
     let conversation = await this.findOne(conversationId);
@@ -134,16 +134,16 @@ export class ConversationsService {
         "user1.userId =:user1 AND user2.userId = :user2 AND type = 'private'",
         { user1: userCreateId, user2: userIds[0] },
       )
-      .getMany();
+      .getOne();
 
     if (
       type == ConversationType.Private &&
-      privateConversation.length != 0 &&
+      privateConversation &&
       userIds.length == 1
     ) {
       return privateConversation;
     } else {
-      if (userIds.length != 1) {
+      if (userIds.length != 1 && type === ConversationType.Private) {
         throw new Error('type private must have only 2 member');
       } else {
         const conversationId = createConversationID();

@@ -56,11 +56,11 @@ export class ConversationsController {
     @Body() createConversationDto: CreateConversationDto,
   ) {
     const user = request['user'].userId;
-    return await this.conversationsService.createConversation(
+    return this.conversationsService.createConversation(
       user,
       createConversationDto.groupName,
       createConversationDto.userIds,
-      createConversationDto.type
+      createConversationDto.type,
     );
   }
 
