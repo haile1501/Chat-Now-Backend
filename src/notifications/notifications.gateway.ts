@@ -48,7 +48,7 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
     const newNoti = await this.notificationsService.createNoti(NotificationType.NEW_FRIEND_REQUEST,createFriendReq.receiverId);
     const receiver = await this.userService.getUserById(createFriendReq.receiverId)
     const updatedNotification = await this.userService.getNotification(receiver.userId);
-    this.io.to(receiver.email).emit('get',updatedNotification);
+    this.io.to(receiver.email).emit('noti:friend-request',updatedNotification);
   }
   @SubscribeMessage('friend-response')
   async reponseFriendReq(
@@ -61,7 +61,7 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
     const type = updateFriendDto.status === FriendStatus.Accepted ? NotificationType.NEW_FRIEND_ACCPECTED : NotificationType.NEW_FRIEND_REFUSED
     await this.notificationsService.createNoti(type,friend.sender.userId);
     const updatedNotification = await this.userService.getNotification(client.data.email);
-    this.io.to(client.data.email).emit('get',updatedNotification);
+    this.io.to(client.data.email).emit('noti:friend-response',updatedNotification);
   }
   @SubscribeMessage('join-group')
   async addedToGroup(
@@ -73,9 +73,9 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
       const users = conversation.users;
       for(let i = 0; i < users.length ; i++){
         if(users[i].userId != client.data.userId){
-          await this.notificationsService.createNoti(NotificationType.NEW_MESSAGE,users[i].userId);
+          await this.notificationsService.createNoti(NotificationType.A_NEW_MEMBER_ADDED,users[i].userId);
           const updatedNotification = await this.userService.getNotification(users[i].userId);
-          this.io.to(users[i].email).emit('get',updatedNotification);
+          this.io.to(users[i].email).emit('noti:join-group',updatedNotification);
     
         }
       }
@@ -90,9 +90,9 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
     const users = conversation.users;
     for(let i = 0; i < users.length ; i++){
       if(users[i].userId != client.data.userId){
-        await this.notificationsService.createNoti(NotificationType.NEW_MESSAGE,users[i].userId);
+        await this.notificationsService.createNoti(NotificationType.LEAVE_CONVERSATION,users[i].userId);
         const updatedNotification = await this.userService.getNotification(users[i].userId);
-        this.io.to(users[i].email).emit('get',updatedNotification);
+        this.io.to(users[i].email).emit('noti:leave-group',updatedNotification);
       }
     }
   }
@@ -101,13 +101,18 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
         @MessageBody('conversationId') conversationId : string,
         @ConnectedSocket() client : Socket
     ){
-      const conversation = await this.conversationService.findUserInConversation(conversationId);
-      const users = conversation.users;
+      const conversation = await this.conversationService.fineOneInDetailed(conversationId,client.data.userId);
+      const users = conversation.member;
       for(let i = 0; i < users.length ; i++){
         if(users[i].userId != client.data.userId){
           await this.notificationsService.createNoti(NotificationType.NEW_MESSAGE,users[i].userId);
+          let receiveConversation = await this.conversationService.fineOneInDetailed(conversationId,users[i].userId);
           const updatedNotification = await this.userService.getNotification(users[i].userId);
-          this.io.to(users[i].email).emit('get',updatedNotification);
+          const notificationDetail = {
+            ...updatedNotification,
+            ...receiveConversation
+          }
+          this.io.to(users[i].email).emit('noti:receive',notificationDetail);
         }
       }
     }

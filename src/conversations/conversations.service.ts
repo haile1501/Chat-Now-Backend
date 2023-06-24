@@ -69,16 +69,34 @@ export class ConversationsService {
       const list = sortBy(newObject,['timeSendLast']).reverse()
       return list;
     }
-async findOne(conversationId: string) {
-    const conversation = await this.conversationRepository
-      .createQueryBuilder('conversation')
-      .leftJoinAndSelect('conversation.messages', 'message')
-      .leftJoinAndSelect('message.user', 'user')
-      .select()
-      .where('"conversationId" = :id', { id: conversationId })
-      .getOne();
 
-    return conversation;
+  async findOne(conversationId: string) {
+      const conversation = await this.conversationRepository
+        .createQueryBuilder('conversation')
+        .leftJoinAndSelect('conversation.messages', 'message')
+        .leftJoinAndSelect('message.user', 'user')
+        .select()
+        .where('"conversationId" = :id', { id: conversationId })
+        .getOne();
+      return conversation;
+    }
+
+  async fineOneInDetailed(conversationId : string, userId : number){
+    let conversation = await this.findOne(conversationId);
+    let users = await this.findUserInConversation(
+        conversationId,
+      );
+
+    let lastMess = conversation.messages[conversation.messages.length - 1];
+    let lastSend = lastMess.timeSend;
+    let object = {
+            ...conversation,
+            lastMessage: lastMess,
+            isMyLastMessage: lastMess.user.userId === userId,
+            member: users.users.filter((user) => user.userId !== userId),
+            timeSendLast : lastSend,
+    }
+    return object;
   }
 
   async GetAll(conversationId: string, userId: number) {
