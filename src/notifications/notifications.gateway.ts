@@ -79,7 +79,7 @@ export class NotificationsGateway
     const updatedNotification = await this.userService.getNotification(
       receiver.userId,
     );
-    this.io.to(receiver.email).emit('get', updatedNotification);
+    this.io.to(receiver.email).emit('noti:friend-request', updatedNotification);
   }
   @SubscribeMessage('friend-response')
   async reponseFriendReq(
@@ -100,7 +100,7 @@ export class NotificationsGateway
     const updatedNotification = await this.userService.getNotification(
       client.data.email,
     );
-    this.io.to(client.data.email).emit('get', updatedNotification);
+    this.io.to(client.data.email).emit('noti:friend-response', updatedNotification);
   }
   @SubscribeMessage('join-group')
   async addedToGroup(
@@ -118,13 +118,13 @@ export class NotificationsGateway
     for (let i = 0; i < users.length; i++) {
       if (users[i].userId != client.data.userId) {
         await this.notificationsService.createNoti(
-          NotificationType.NEW_MESSAGE,
+          NotificationType.A_NEW_MEMBER_ADDED,
           users[i].userId,
         );
         const updatedNotification = await this.userService.getNotification(
           users[i].userId,
         );
-        this.io.to(users[i].email).emit('get', updatedNotification);
+        this.io.to(users[i].email).emit('noti:join-group', updatedNotification);
       }
     }
   }
@@ -144,13 +144,13 @@ export class NotificationsGateway
     for (let i = 0; i < users.length; i++) {
       if (users[i].userId != client.data.userId) {
         await this.notificationsService.createNoti(
-          NotificationType.NEW_MESSAGE,
+          NotificationType.LEAVE_CONVERSATION,
           users[i].userId,
         );
         const updatedNotification = await this.userService.getNotification(
           users[i].userId,
         );
-        this.io.to(users[i].email).emit('get', updatedNotification);
+        this.io.to(users[i].email).emit('noti:leave-group', updatedNotification);
       }
     }
   }
