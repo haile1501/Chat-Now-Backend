@@ -66,6 +66,7 @@ export class ConversationsService {
       }
     }
     const list = sortBy(newObject, ['timeSendLast']).reverse();
+
     return list;
   }
   async findOne(conversationId: string) {
@@ -85,11 +86,11 @@ export class ConversationsService {
     let users = await this.findUserInConversation(conversationId);
 
     let lastMess = conversation.messages[conversation.messages.length - 1];
-    let lastSend = lastMess.timeSend;
+    let lastSend = lastMess?.timeSend;
     let object = {
       ...conversation,
       lastMessage: lastMess,
-      isMyLastMessage: lastMess.user.userId === userId,
+      isMyLastMessage: lastMess?.user.userId === userId,
       member: users.users.filter((user) => user.userId !== userId),
       timeSendLast: lastSend,
     };
@@ -122,45 +123,41 @@ export class ConversationsService {
     userIds: number[],
     type: ConversationType,
   ) {
-    const privateConversation = await this.conversationRepository
-      .createQueryBuilder('conversation')
-      .select()
-      .leftJoinAndSelect('conversation.users', 'user1')
-      .leftJoinAndSelect('conversation.users', 'user2')
-      .where(
-        "user1.userId =:user1 AND user2.userId = :user2 AND type = 'private'",
-        { user1: userCreateId, user2: userIds[0] },
-      )
-      .getOne();
+    if (type == ConversationType.Private && userIds.length === 1) {
+      const privateConversation = await this.conversationRepository
+        .createQueryBuilder('conversation')
+        .select()
+        .leftJoinAndSelect('conversation.users', 'user1')
+        .leftJoinAndSelect('conversation.users', 'user2')
+        .where(
+          "user1.userId =:user1 AND user2.userId = :user2 AND type = 'private'",
+          { user1: userCreateId, user2: userIds[0] },
+        )
+        .getOne();
 
-    if (
-      type == ConversationType.Private &&
-      privateConversation &&
-      userIds.length == 1
-    ) {
-      return privateConversation;
-    } else {
-      if (userIds.length != 1 && type === ConversationType.Private) {
-        throw new Error('type private must have only 2 member');
-      } else if (type === ConversationType.Group) {
-        const conversationId = createConversationID();
-        const userCreate = await this.userService.getUserById(userCreateId);
-        const users: User[] = [JSON.parse(JSON.stringify(userCreate))];
-        const getUserPromises = userIds.map(
-          async (userId) => await this.userService.getUserById(userId),
-        );
-        const member = await Promise.all(getUserPromises);
-
-        users.push(...member);
-        const newConversation = await this.conversationRepository.create({
-          conversationId,
-          groupName,
-          type,
-          users,
-        });
-        return this.conversationRepository.save(newConversation);
+      if (privateConversation) {
+        return privateConversation;
       }
+    } else if (userIds.length != 1 && type === ConversationType.Private) {
+      throw new Error('type private must have only 2 member');
     }
+    const conversationId = createConversationID();
+    const userCreate = await this.userService.getUserById(userCreateId);
+    const users: User[] = [JSON.parse(JSON.stringify(userCreate))];
+    const getUserPromises = userIds.map(
+      async (userId) => await this.userService.getUserById(userId),
+    );
+    const member = await Promise.all(getUserPromises);
+
+    users.push(...member);
+    const newConversation = this.conversationRepository.create({
+      conversationId,
+      groupName,
+      type,
+      users,
+    });
+
+    return this.conversationRepository.save(newConversation);
   }
 
   async leaveConversation(userId: number, conversationId: string) {

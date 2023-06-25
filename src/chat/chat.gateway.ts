@@ -18,6 +18,7 @@ import { CreateMessageDto } from 'src/messages/dto/create-message.dto';
 import { MessagesService } from 'src/messages/messages.service';
 import { User } from 'src/users/entities/user.entity';
 import { CreateConversationDto } from 'src/conversations/dto/create-conversation.dto';
+import { ConversationType } from 'src/constant/constant';
 
 @WebSocketGateway()
 export class ChatGateWay {
@@ -52,21 +53,24 @@ export class ChatGateWay {
       roomName,
       client.data as User,
     );
+
     client.to(roomName).emit('receive', updateConversation);
     const conversation = await this.conversationService.fineOneInDetailed(
       roomName,
       client.data.userId,
     );
+    if (conversation.type === ConversationType.Private) {
+      const partner = conversation.member[0];
+      conversation.groupName = `${partner.firstName} ${partner.lastName}`;
+    }
+    this.io.to(client.data.email).emit('noti:receive', conversation);
+    if (conversation.type === ConversationType.Private) {
+      conversation.isMyLastMessage = false;
+      conversation.groupName = `${client.data.firstName} ${client.data.lastName}`;
+    }
     const users = conversation.member;
     for (let i = 0; i < users.length; i++) {
-      if (users[i].userId != client.data.userId) {
-        let receiveConversation =
-          await this.conversationService.fineOneInDetailed(
-            roomName,
-            users[i].userId,
-          );
-        this.io.to(users[i].email).emit('noti:receive', receiveConversation);
-      }
+      this.io.to(users[i].email).emit('noti:receive', conversation);
     }
   }
 }
