@@ -65,9 +65,9 @@ export class ChatGateWay {
     }
     this.io.to(client.data.email).emit('noti:receive', conversation);
     if (conversation.type === ConversationType.Private) {
-      conversation.isMyLastMessage = false;
       conversation.groupName = `${client.data.firstName} ${client.data.lastName}`;
     }
+    conversation.isMyLastMessage = false;
     const users = conversation.member;
     for (let i = 0; i < users.length; i++) {
       this.io.to(users[i].email).emit('noti:receive', conversation);

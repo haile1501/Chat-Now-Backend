@@ -140,7 +140,6 @@ export class ConversationsController {
     @Param('conversationId') conversationId: string,
     @Param('memberId') userId: number,
   ) {
-    console.log(userId);
     return await this.conversationsService.removeParticipants(
       conversationId,
       userId,

@@ -51,6 +51,11 @@ export class ConversationsService {
           member: users.users.filter((user) => user.userId !== userId),
           timeSendLast: lastSend,
         };
+
+        if (conversation.type === ConversationType.Private) {
+          const partner = object.member[0];
+          object.groupName = `${partner.firstName} ${partner.lastName}`;
+        }
         newObject.push(object);
       } else if (conversation.type === ConversationType.Group) {
         let lastMess = null;
