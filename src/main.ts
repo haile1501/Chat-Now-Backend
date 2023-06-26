@@ -15,22 +15,19 @@ async function bootstrap() {
     }),
   );
   const configService = app.get(ConfigService);
-  const clientPort = parseInt(configService.get('CLIENT_PORT'));
+  const clientURL = configService.get('CLIENT_BASE_URL');
 
   app.enableCors({
-    origin: [
-      `http://localhost:${clientPort}`,
-      new RegExp(`/^http:\/\/192\.168\.1\.([1-9]|[1-9]\d):${clientPort}$/`),
-    ],
+    origin: [clientURL],
   });
 
   app.useWebSocketAdapter(new SocketIOAdapter(app, configService));
 
-  const config =  new DocumentBuilder()
-  .setTitle('Chat Now App')
-  .setDescription('Chat Now backend API description')
-  .setVersion('1.0')
-  .build()
+  const config = new DocumentBuilder()
+    .setTitle('Chat Now App')
+    .setDescription('Chat Now backend API description')
+    .setVersion('1.0')
+    .build();
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);

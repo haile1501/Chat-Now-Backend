@@ -178,4 +178,11 @@ export class NotificationsGateway
   //       }
   //     }
   // }
+
+  @SubscribeMessage('call')
+  async call(
+    @MessageBody('type') type: string,
+    @MessageBody('conversationId') conversationId: string,
+    @ConnectedSocket() client: Socket,
+  ) {}
 }
