@@ -4,9 +4,17 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { SocketIOAdapter } from './socket-io-adapter';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as fs from 'fs';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const httpsOptions = {
+    key: fs.readFileSync('certificates/localhost.key'),
+    cert: fs.readFileSync('certificates/localhost.crt'),
+  };
+  const app = await NestFactory.create(AppModule, {
+    httpsOptions,
+  });
+  //const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -17,9 +25,7 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const clientURL = configService.get('CLIENT_BASE_URL');
 
-  app.enableCors({
-    origin: [clientURL],
-  });
+  app.enableCors();
 
   app.useWebSocketAdapter(new SocketIOAdapter(app, configService));
 
@@ -31,6 +37,6 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
-  await app.listen(process.env.PORT || 3001);
+  await app.listen(process.env.PORT || 3001, '0.0.0.0');
 }
 bootstrap();
