@@ -13,6 +13,7 @@ import { MessagesModule } from './messages/messages.module';
 import { ConversationsModule } from './conversations/conversations.module';
 import { ChatModule } from './chat/chat.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { CallModule } from './call/call.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, load: [configuration] }),
@@ -36,6 +37,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     MessagesModule,
     ChatModule,
     NotificationsModule,
+    CallModule,
   ],
   controllers: [AppController],
   providers: [AppService],

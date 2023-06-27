@@ -5,12 +5,19 @@ export enum Gender {
 }
 export enum OnlineStatus {
   ON = 'Online',
-  OFF = 'Offline'
+  OFF = 'Offline',
+  CALL = 'Call',
 }
 
 export enum ConversationType {
   Private = 'private',
   Group = 'group',
+}
+
+export enum CallType {
+  Voice = 'voice',
+  Video = 'video',
+  NoCall = 'no',
 }
 
 export enum FriendStatus {
@@ -26,10 +33,10 @@ export enum NotificationType {
   NEW_CONVERSATION = 'you are added to new conversation ',
   NEW_MESSAGE = 'you have new message from ',
   LEAVE_CONVERSATION = 'conversation has left by ',
-  A_NEW_MEMBER_ADDED = 'a new member has been added '
+  A_NEW_MEMBER_ADDED = 'a new member has been added ',
 }
 
 export enum NotiStatus {
   READED = 'Readed',
-  NOT_READ_YET = 'Not read yet'
+  NOT_READ_YET = 'Not read yet',
 }

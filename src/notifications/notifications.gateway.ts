@@ -16,6 +16,7 @@ import { FriendsService } from 'src/friends/friends.service';
 import { UsersService } from 'src/users/users.service';
 import { OneToOne } from 'typeorm';
 import {
+  CallType,
   FriendStatus,
   NotificationType,
   OnlineStatus,
@@ -43,23 +44,48 @@ export class NotificationsGateway
   ) {}
 
   async handleConnection(client: Socket) {
-    console.log(client.data);
-    await this.userService.changeStatusUser(
-      client.data.userId,
-      OnlineStatus.ON,
-    );
-    const updatedNotification = await this.userService.getNotification(
-      client.data.userId,
-    );
-    await client.join(client.data.email);
-    this.io.to(client.data.email).emit('get', updatedNotification);
+    const user = await this.userService.findOne(client.data.email);
+    if (user.onlineStatus !== OnlineStatus.CALL) {
+      await this.userService.changeStatusUser(
+        client.data.userId,
+        OnlineStatus.ON,
+      );
+      const updatedNotification = await this.userService.getNotification(
+        client.data.userId,
+      );
+      await client.join(client.data.email);
+      client.broadcast.emit('noti:user-status-change', {
+        userId: client.data.userId,
+        status: OnlineStatus.ON,
+      });
+      this.io.to(client.data.email).emit('get', updatedNotification);
+    }
   }
+
   async handleDisconnect(client: Socket) {
-    await this.userService.changeStatusUser(
-      client.data.userId,
-      OnlineStatus.OFF,
-    );
+    const user = await this.userService.findOne(client.data.email);
+
+    if (user.onlineStatus === OnlineStatus.ON) {
+      await this.userService.changeStatusUser(
+        client.data.userId,
+        OnlineStatus.OFF,
+      );
+      client.broadcast.emit('noti:user-status-change', {
+        userId: client.data.userId,
+        status: OnlineStatus.OFF,
+      });
+    } else if (user.onlineStatus === OnlineStatus.CALL) {
+      await this.userService.changeStatusUser(
+        client.data.userId,
+        OnlineStatus.ON,
+      );
+      client.broadcast.emit('noti:user-status-change', {
+        userId: client.data.userId,
+        status: OnlineStatus.ON,
+      });
+    }
   }
+
   @SubscribeMessage('friend-request')
   async sendFriendReq(
     @MessageBody() createFriendReq: CreateFriendDto,
@@ -178,4 +204,108 @@ export class NotificationsGateway
   //       }
   //     }
   // }
+
+  @SubscribeMessage('call')
+  async call(
+    @MessageBody('type') type: string,
+    @MessageBody('conversationId') conversationId: string,
+    @ConnectedSocket() client: Socket,
+  ) {
+    await this.userService.changeStatusUser(
+      client.data.userId,
+      OnlineStatus.CALL,
+    );
+
+    await this.conversationService.updateConversationCall(
+      conversationId,
+      type as CallType,
+      'call',
+    );
+
+    client.broadcast.emit('noti:user-status-change', {
+      userId: client.data.userId,
+      status: OnlineStatus.CALL,
+    });
+
+    const conversation = await this.conversationService.findUserInConversation(
+      conversationId,
+    );
+
+    conversation.users.forEach((user) => {
+      if (user.userId !== client.data.userId) {
+        this.io.to(user.email).emit('noti:calling', {
+          caller: client.data,
+          type,
+          conversationId,
+        });
+      }
+    });
+  }
+
+  @SubscribeMessage('join-call')
+  async handleJoinCall(
+    @MessageBody('conversationId') conversationId: string,
+    @ConnectedSocket() client: Socket,
+  ) {
+    await this.userService.changeStatusUser(
+      client.data.userId,
+      OnlineStatus.CALL,
+    );
+
+    await this.conversationService.updateConversationCall(
+      conversationId,
+      null,
+      'join',
+    );
+
+    client.broadcast.emit('noti:user-status-change', {
+      userId: client.data.userId,
+      status: OnlineStatus.CALL,
+    });
+  }
+
+  @SubscribeMessage('leave-call')
+  async handleLeaveCall(
+    @MessageBody('conversationId') conversationId: string,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const conversation = await this.conversationService.updateConversationCall(
+      conversationId,
+      null,
+      'leave',
+    );
+
+    if (conversation.callType === CallType.NoCall) {
+      const conversation =
+        await this.conversationService.findUserInConversation(conversationId);
+
+      conversation.users.forEach((user) => {
+        this.io.to(user.email).emit('noti:end-call', {
+          conversationId,
+        });
+      });
+    }
+  }
+
+  @SubscribeMessage('reject-private-call')
+  async handleRejectPrivateCall(
+    @MessageBody() body: any,
+    @ConnectedSocket() client: Socket,
+  ) {}
+
+  @SubscribeMessage('noti:group-created')
+  async handleGroupCreated(
+    @MessageBody() body: any,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const conversation = await this.conversationService.fineOneInDetailed(
+      body.id,
+      client.data.userId,
+    );
+
+    const users = conversation.member;
+    for (let i = 0; i < users.length; i++) {
+      this.io.to(users[i].email).emit('noti:added-to-group', body);
+    }
+  }
 }
