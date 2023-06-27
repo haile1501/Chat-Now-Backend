@@ -2,18 +2,14 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { Conversation } from './entities/conversation.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { HttpAuthGuard } from 'src/auth/guard/auth.guard';
 import { UsersService } from 'src/users/users.service';
-import { error } from 'console';
 import {
   UNAVAILABLE_GROUP,
   UNAVAILABLE_USER,
   UNAVAILABLE_USER_IN_CONVERSATION,
 } from 'src/constant/error.constant';
-import { throwError } from 'rxjs';
-import { forEach, last } from 'lodash';
 import { createConversationID } from 'src/utils/ids';
-import { ConversationType } from 'src/constant/constant';
+import { CallType, ConversationType } from 'src/constant/constant';
 import { sortBy } from 'lodash';
 import { User } from 'src/users/entities/user.entity';
 
@@ -162,7 +158,10 @@ export class ConversationsService {
       users,
     });
 
-    return this.conversationRepository.save(newConversation);
+    const conversation = await this.conversationRepository.save(
+      newConversation,
+    );
+    return conversation;
   }
 
   async leaveConversation(userId: number, conversationId: string) {
@@ -208,5 +207,30 @@ export class ConversationsService {
 
   async updateConversation(conversationId: string, groupName: string) {
     return this.conversationRepository.update(conversationId, { groupName });
+  }
+
+  async updateConversationCall(
+    conversationId: string,
+    callType: CallType | null,
+    eventType: 'join' | 'leave' | 'call',
+  ) {
+    const conversation = await this.conversationRepository.findOneBy({
+      conversationId,
+    });
+
+    if (eventType === 'call') {
+      conversation.callType = callType;
+      conversation.membersInCall = conversation.membersInCall + 1;
+    } else if (eventType === 'leave') {
+      conversation.membersInCall = conversation.membersInCall - 1;
+      if (conversation.membersInCall <= 0) {
+        conversation.membersInCall = 0;
+        conversation.callType = CallType.NoCall;
+      }
+    } else if (eventType === 'join') {
+      conversation.membersInCall = conversation.membersInCall + 1;
+    }
+
+    return this.conversationRepository.save(conversation);
   }
 }

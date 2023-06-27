@@ -14,6 +14,12 @@ export enum ConversationType {
   Group = 'group',
 }
 
+export enum CallType {
+  Voice = 'voice',
+  Video = 'video',
+  NoCall = 'no',
+}
+
 export enum FriendStatus {
   Waiting = 'waiting',
   Accepted = 'accepted',
