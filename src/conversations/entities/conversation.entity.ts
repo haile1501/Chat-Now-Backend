@@ -21,7 +21,12 @@ export class Conversation {
   @Column({ type: 'enum', enum: ConversationType })
   type: ConversationType;
 
-  @Column({ type: 'enum', enum: CallType, nullable: true })
+  @Column({
+    type: 'enum',
+    enum: CallType,
+    nullable: true,
+    default: CallType.NoCall,
+  })
   callType: CallType;
 
   @Column({ default: 0, nullable: true })

@@ -240,6 +240,8 @@ export class NotificationsGateway
         });
       }
     });
+
+    return 'ok';
   }
 
   @SubscribeMessage('join-call')
@@ -262,6 +264,8 @@ export class NotificationsGateway
       userId: client.data.userId,
       status: OnlineStatus.CALL,
     });
+
+    return 'ok';
   }
 
   @SubscribeMessage('leave-call')
@@ -285,6 +289,8 @@ export class NotificationsGateway
         });
       });
     }
+
+    return 'ok';
   }
 
   @SubscribeMessage('reject-private-call')
