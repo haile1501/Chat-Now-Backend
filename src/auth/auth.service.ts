@@ -64,13 +64,14 @@ export class AuthService {
   async resertPassword(email: string){
     const user = await this.userService.findOne(email);
     const newPassword = createPassword();
-    if(user){
+    if(user){  
       await this.mailerService.sendMail({
         from: 'noreply@chatnow.com',
         to: user.email,
         subject: '[ChatNow] Return Your New Password',
         html: verificationPassWordEmail(user.email, user.otp, newPassword),
       })
+      await this.userService.updatePassword(user.userId,newPassword);
       return user;
     }
     else{
