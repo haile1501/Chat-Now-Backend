@@ -1,4 +1,4 @@
-import { ConversationType } from 'src/constant/constant';
+import { CallType, ConversationType } from 'src/constant/constant';
 import { Message } from 'src/messages/entities/message.entity';
 import { User } from 'src/users/entities/user.entity';
 import {
@@ -21,11 +21,16 @@ export class Conversation {
   @Column({ type: 'enum', enum: ConversationType })
   type: ConversationType;
 
+  @Column({ type: 'enum', enum: CallType, nullable: true })
+  callType: CallType;
+
+  @Column({ default: 0, nullable: true })
+  membersInCall: number;
+
   @ManyToMany(() => User, (user) => user.conversations)
   @JoinTable()
   users: User[];
 
   @OneToMany(() => Message, (message) => message.conversation)
   messages: Message[];
-
 }
