@@ -58,4 +58,9 @@ export class FriendsController {
   async unFriendReq(@Param('requestId') friendId : number){
     return this.friendsService.unfriend(friendId);
   }
+  @Get('getProfile/:id')
+  async getProfile(@Param('id') findId : number, @Req() request : Request){
+    const userId = request['user'].userId;
+    return this.friendsService.getUserProfile(userId,findId);
+  }
 }

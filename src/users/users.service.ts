@@ -12,6 +12,7 @@ import { Like } from 'typeorm';
 import { NotiStatus, OnlineStatus } from 'src/constant/constant';
 import { NotificationEntity } from 'src/notifications/entities/notification.entity';
 import { CloudinaryService } from 'nestjs-cloudinary';
+import { Friend } from 'src/friends/entities/friend.entity';
 @Injectable()
 export class UsersService {
   constructor(
@@ -92,6 +93,7 @@ export class UsersService {
   async getUserById(userId: number) {
     return await this.userRepository.findOneBy({ userId });
   }
+
   async changeStatusUser(userId: number, status: OnlineStatus) {
     return await this.userRepository.update(userId, { onlineStatus: status });
   }
@@ -113,6 +115,10 @@ export class UsersService {
     return await this.userRepository.update(user, { avatar: image.public_id });
   }
 
+  async uploadFile(file: Express.Multer.File){
+    const uploadFile = await this.cloudinaryService.uploadFile(file);
+    return uploadFile.public_id;
+  }
   async getAvatarUrl(userId: number) {
     const user = await this.getUserById(userId);
     const image = await this.cloudinaryService.cloudinary.api.resource(

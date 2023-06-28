@@ -56,19 +56,22 @@ export class UsersController {
     const userId = request['user'].userId;
     return await this.userService.update(userId, updateUserDto);
   }
-  @Get(':id')
-  async getUserProFile(@Param('id') userId: number) {
-    return await this.userService.getUserById(userId);
-  }
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
-  async uploadFile(
+  async uploadAvatar(
     @UploadedFile() file: Express.Multer.File,
     @Req() request: Request,
   ) {
     const userId = request['user'].userId;
     return await this.userService.uploadAvatar(file, userId);
+  }
+  @Post('uploadFile')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return await this.userService.uploadFile(file);
   }
   @Get('getAvatar/:id')
   async getAvatarUrl(@Param('id') userId: number) {
@@ -81,4 +84,5 @@ export class UsersController {
     const password = updatePassword.password;
     return await this.userService.updatePassword(userId,password);
   }
+  
 }

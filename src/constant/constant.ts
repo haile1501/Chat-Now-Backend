@@ -26,6 +26,12 @@ export enum FriendStatus {
   Rejected = 'rejected',
 }
 
+export enum UserStatus {
+  Strange = 'strange',
+  Friend = 'friend',
+  Waiting = 'waiting'
+}
+
 export enum NotificationType {
   NEW_FRIEND_REQUEST = 'you has a new friend request from ',
   NEW_FRIEND_ACCPECTED = ' your request is accepted from ',

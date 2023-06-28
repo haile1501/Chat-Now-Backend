@@ -4,7 +4,7 @@ import { UpdateFriendDto } from './dto/update-friend.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Friend } from './entities/friend.entity';
 import { Repository } from 'typeorm';
-import { FriendStatus } from 'src/constant/constant';
+import { FriendStatus, UserStatus } from 'src/constant/constant';
 import { UsersService } from 'src/users/users.service';
 import { User } from 'src/users/entities/user.entity';
 
@@ -67,5 +67,78 @@ export class FriendsService {
     .where('friend.friendId = :friendId', { friendId: requestId })
     .getOne()
     return friend;
+  }
+  async getAllFriend(userId :number){
+    const listReceived = await this.friendsRepository.createQueryBuilder('friend')
+    .leftJoinAndSelect('friend.sender', 'user1')
+    .leftJoinAndSelect('friend.receiver', 'user2')
+    .where('\"senderId\" = :userId and status = :status ',{userId : userId, status : FriendStatus.Accepted})
+    .getMany()
+    const listSent = await this.friendsRepository.createQueryBuilder('friend')
+    .leftJoinAndSelect('friend.sender', 'user1')
+    .leftJoinAndSelect('friend.receiver', 'user2')
+    .where('\"receiverId\" = :userId and status = :status ',{userId : userId, status : FriendStatus.Accepted})
+    .getMany()
+    console.log(listSent);
+    const listFriend : User[] = [];
+    for (let i = 0; i < listReceived.length; i++){
+      
+      listFriend.push(listReceived[i].receiver);
+    }
+    for (let j = 0; j < listSent.length; j++){
+      console.log(listFriend);
+      listFriend.push(listSent[j].sender);
+    }
+    return listFriend;
+  }
+  async getUserProfile(userId : number, findId : number){
+    const receiver  =  await this.friendsRepository.createQueryBuilder('friend')
+    .leftJoinAndSelect('friend.sender', 'user1')
+    .leftJoinAndSelect('friend.receiver', 'user2')
+    .where("\"senderId\" = :userId AND \"receiverId\" = :findId", { userId: userId,findId :findId })
+    .getOne()
+    const sender  =  await this.friendsRepository.createQueryBuilder('friend')
+    .leftJoinAndSelect('friend.sender', 'user1')
+    .leftJoinAndSelect('friend.receiver', 'user2')
+    .where("\"senderId\" = :findId AND \"receiverId\" = :userId", { userId: userId,findId :findId })
+    .getOne()
+    const listUserFriend = await this.getAllFriend(userId);
+    const listFindFriend = await this.getAllFriend(findId);
+    let mutualFriends: number = 0;
+    for(let i = 0; i <listFindFriend.length ; i++){
+      for (let j = 0 ; j < listUserFriend.length ; j++){
+        if(listFindFriend[i].userId == listUserFriend[j].userId){
+          mutualFriends = mutualFriends + 1;
+        }
+      }
+    }
+    if(receiver){
+      const status = receiver.status === FriendStatus.Accepted ? UserStatus.Friend : UserStatus.Waiting;
+      const profile = {
+        ...receiver.receiver,
+        status,
+        mutualFriends
+      }
+      return profile;
+    }
+    if(sender){
+      const status = sender.status === FriendStatus.Accepted ? UserStatus.Friend : UserStatus.Waiting;
+      const profile = {
+        ...sender.sender,
+        status,
+        mutualFriends,
+      }
+      return profile;
+    }
+    else{
+      const user = await this.userSevice.getUserById(findId);
+      const status =  UserStatus.Strange;
+      let profile = {
+        ...user,
+        status,
+        mutualFriends,
+      }
+      return profile;
+    }
   }
 }
