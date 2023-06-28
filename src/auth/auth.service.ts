@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { verifyPassword } from 'src/utils/bcrypt.util';
 import {
   UNVERIFIED_ACCOUNT,
+  USER_NOT_FOUND,
   WRONG_EMAIL_OR_PASSWORD,
   WRONG_VERIFICATION_LINK,
 } from 'src/constant/error.constant';
@@ -16,7 +17,8 @@ import { ConfigService } from '@nestjs/config';
 import { SignUpDto } from './dto/sign-up.dto';
 import { MailerService } from '@nestjs-modules/mailer';
 import { VerifyEmailDto } from './dto/verify-email.dto';
-import { verificationEmail } from 'src/constant/email-template.constant';
+import { verificationEmail, verificationPassWordEmail } from 'src/constant/email-template.constant';
+import { createPassword } from 'src/utils/ids';
 
 @Injectable()
 export class AuthService {
@@ -57,6 +59,23 @@ export class AuthService {
       html: verificationEmail(user.email, user.otp),
     });
     return user;
+  }
+
+  async resertPassword(email: string){
+    const user = await this.userService.findOne(email);
+    const newPassword = createPassword();
+    if(user){
+      await this.mailerService.sendMail({
+        from: 'noreply@chatnow.com',
+        to: user.email,
+        subject: '[ChatNow] Return Your New Password',
+        html: verificationPassWordEmail(user.email, user.otp, newPassword),
+      })
+      return user;
+    }
+    else{
+      throw new Error(...USER_NOT_FOUND);
+    }
   }
 
   async resendEmail(email: string) {

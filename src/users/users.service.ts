@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SignUpDto } from 'src/auth/dto/sign-up.dto';
 import { User } from './entities/user.entity';
-import { hashPassword } from 'src/utils/bcrypt.util';
+import { hashPassword, verifyPassword } from 'src/utils/bcrypt.util';
 import { EMAIL_ALREADY_USED } from 'src/constant/error.constant';
 import { v4 } from 'uuid';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -45,8 +45,13 @@ export class UsersService {
     return user;
   }
 
+  async updatePassword(userId : number, password : string){
+    const newPassword = await hashPassword(password);
+    return this.userRepository.update(userId,{password : newPassword});
+  }
+
   async update(userId: number, updateUserDto: UpdateUserDto) {
-    return this.userRepository.update({ userId }, updateUserDto);
+    return this.userRepository.update({userId}, updateUserDto);
   }
 
   async findAll(

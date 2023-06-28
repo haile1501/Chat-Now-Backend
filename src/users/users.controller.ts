@@ -13,7 +13,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-
 import { HttpAuthGuard } from 'src/auth/guard/auth.guard';
 import { Request } from 'express';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -25,6 +24,7 @@ import {
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { request } from 'http';
+import { UpdatePassword } from './dto/update-password.dto';
 
 @ApiTags('user')
 @ApiBearerAuth()
@@ -73,5 +73,12 @@ export class UsersController {
   @Get('getAvatar/:id')
   async getAvatarUrl(@Param('id') userId: number) {
     return await this.userService.getAvatarUrl(userId);
+  }
+  @Patch('changePassword')
+  async changePassword(@Req() request : Request,@Body() updatePassword : UpdatePassword){
+    const userId = request['user'].userId;
+    console.log(userId)
+    const password = updatePassword.password;
+    return await this.userService.updatePassword(userId,password);
   }
 }

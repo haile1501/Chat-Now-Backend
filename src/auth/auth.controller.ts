@@ -48,6 +48,16 @@ export class AuthController {
     return this.authService.resendEmail(email);
   }
 
+  @ApiOperation({ summary: 'resert password email' })
+  @ApiResponse({ status: 400, description: 'forbiden.' })
+  @ApiResponse({ status: 200, description: 'verify email successfully'})
+  @ApiBody({description : 'email'})
+  @HttpCode(HttpStatus.OK)
+  @Post('resert-password')
+  async resertPassword(@Body('email') email: string) {
+    return this.authService.resertPassword(email);
+  }
+
     
   @ApiOperation({ summary: 'Verify access token' })
   @ApiResponse({ status: 400, description: 'forbiden.' })
