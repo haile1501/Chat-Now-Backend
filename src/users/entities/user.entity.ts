@@ -41,25 +41,27 @@ export class User {
   @Column({ nullable: true })
   otp: string;
 
-  @Column({nullable :true})
-  avatar : string;
+  @Column({ nullable: true })
+  avatar: string;
 
-  @Column({type: 'enum' , enum : OnlineStatus, nullable : true})
-  onlineStatus : OnlineStatus;
+  @Column({ nullable: true })
+  about: string;
+
+  @Column({ type: 'enum', enum: OnlineStatus, nullable: true })
+  onlineStatus: OnlineStatus;
 
   @OneToMany(() => Friend, (friend) => friend.sender)
-  friendRequestsSent : Friend[];
+  friendRequestsSent: Friend[];
 
   @OneToMany(() => Friend, (friend) => friend.receiver)
-  friendRequestsReceived : Friend[];
+  friendRequestsReceived: Friend[];
 
   @ManyToMany(() => Conversation, (conversation) => conversation.users)
   conversations: Conversation[];
 
-  @OneToMany(() => NotificationEntity, notification => notification.user)
-  notifications : NotificationEntity[];
+  @OneToMany(() => NotificationEntity, (notification) => notification.user)
+  notifications: NotificationEntity[];
 
   @OneToMany(() => Message, (message) => message.user)
   messages: Message[];
-  
 }

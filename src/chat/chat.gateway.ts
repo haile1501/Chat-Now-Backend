@@ -72,5 +72,7 @@ export class ChatGateWay {
     for (let i = 0; i < users.length; i++) {
       this.io.to(users[i].email).emit('noti:receive', conversation);
     }
+
+    return updateConversation.messageId;
   }
 }
