@@ -14,3 +14,10 @@ export class AddUserDto {
   @IsNumber()
   userId : number;
 }
+
+
+export class AddMutilUserDto {
+  @ApiProperty()
+  @IsNumber()
+  userIds : number[];
+}

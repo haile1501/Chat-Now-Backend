@@ -14,6 +14,7 @@ import { ConversationsService } from './conversations.service';
 import { HttpAuthGuard } from 'src/auth/guard/auth.guard';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import {
+  AddMutilUserDto,
   AddUserDto,
   UpdateConversationDto,
 } from './dto/update-conversation.dto';
@@ -42,7 +43,6 @@ export class ConversationsController {
     @Query('size') size: number,
   ) {
     const userId = request['user'].userId;
-
     return await this.conversationsService.findConversation(page, size, userId);
   }
 
@@ -131,6 +131,22 @@ export class ConversationsController {
       addUserDto.userId,
     );
   }
+
+  @ApiOperation({ summary: 'retrieve conversation' })
+  @ApiResponse({ status: 400, description: 'forbiden.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 200, description: 'OK' })
+  @Post('/:conversationId/member')
+  async addMutiMember(
+    @Param('conversationId') conversationId: string,
+    @Body() addMutilUserDto: AddMutilUserDto,
+  ) {
+    return await this.conversationsService.addMutiparticipants(
+      conversationId,
+      addMutilUserDto.userIds,
+    );
+  }
+
   @ApiOperation({ summary: 'delete conversation' })
   @ApiResponse({ status: 400, description: 'forbiden.' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -145,4 +161,6 @@ export class ConversationsController {
       userId,
     );
   }
+
+
 }

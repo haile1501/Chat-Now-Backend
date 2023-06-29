@@ -176,7 +176,7 @@ export class ConversationsService {
         userId: userAddedId,
       });
     }
-    const updatedConversation = await this.findOne(conversationId);
+    const updatedConversation = await this.findUserInConversation(conversationId);
     if (!updatedConversation) {
       throw new BadRequestException({ ...UNAVAILABLE_GROUP });
     }
@@ -184,20 +184,31 @@ export class ConversationsService {
     return this.conversationRepository.save(updatedConversation);
   }
 
+  async addMutiparticipants(conversationId : string, userIds : number[]){
+    for(let i = 0; i < userIds.length; i++){
+      await this.addParticipants(conversationId,userIds[i]);
+    }
+    return await this.findUserInConversation(conversationId);
+  }
   async removeParticipants(conversationId: string, userRemovedId: number) {
+    console.log(conversationId);
     const userRemoved = await this.userService.getUserById(userRemovedId);
+    const updatedConversation = await this.findUserInConversation(conversationId);
+    const users : User[] = updatedConversation.users;
     if (!userRemoved) {
       throw new BadRequestException({ ...UNAVAILABLE_USER });
     }
-    const updatedConversation = await this.findOne(conversationId);
+    console.log(updatedConversation);
     if (!updatedConversation) {
       throw new BadRequestException({ ...UNAVAILABLE_GROUP });
     }
+    const isUserInConversation = users.find((user) => user.userId ===  userRemovedId);
     if (
-      !updatedConversation.users.find((user) => user.userId === userRemovedId)
+      !isUserInConversation
     ) {
       throw new BadRequestException({ ...UNAVAILABLE_USER_IN_CONVERSATION });
-    } else {
+    }
+    else {
       updatedConversation.users = updatedConversation.users.filter(
         (user) => user.userId != userRemovedId,
       );
