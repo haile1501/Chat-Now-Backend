@@ -86,7 +86,9 @@ export class ConversationsController {
   @ApiResponse({ status: 200, description: 'OK' })
   @Get('/:id/member')
   async getOne(@Param('id') conversationId: string) {
-    return await this.conversationsService.findOne(conversationId);
+    return await this.conversationsService.findUserInConversation(
+      conversationId,
+    );
   }
 
   @ApiOperation({ summary: 'get one conversation ' })
