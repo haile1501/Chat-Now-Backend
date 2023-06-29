@@ -29,7 +29,9 @@ export enum FriendStatus {
 export enum UserStatus {
   Strange = 'strange',
   Friend = 'friend',
-  Waiting = 'waiting'
+  Receiver = 'receiver',
+  Sender = 'sender'
+
 }
 
 export enum NotificationType {

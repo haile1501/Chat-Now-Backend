@@ -79,14 +79,12 @@ export class FriendsService {
     .leftJoinAndSelect('friend.receiver', 'user2')
     .where('\"receiverId\" = :userId and status = :status ',{userId : userId, status : FriendStatus.Accepted})
     .getMany()
-    console.log(listSent);
     const listFriend : User[] = [];
     for (let i = 0; i < listReceived.length; i++){
       
       listFriend.push(listReceived[i].receiver);
     }
     for (let j = 0; j < listSent.length; j++){
-      console.log(listFriend);
       listFriend.push(listSent[j].sender);
     }
     return listFriend;
@@ -113,7 +111,7 @@ export class FriendsService {
       }
     }
     if(receiver){
-      const status = receiver.status === FriendStatus.Accepted ? UserStatus.Friend : UserStatus.Waiting;
+      const status = receiver.status === FriendStatus.Accepted ? UserStatus.Friend : UserStatus.Receiver;
       const profile = {
         ...receiver.receiver,
         status,
@@ -122,7 +120,7 @@ export class FriendsService {
       return profile;
     }
     if(sender){
-      const status = sender.status === FriendStatus.Accepted ? UserStatus.Friend : UserStatus.Waiting;
+      const status = sender.status === FriendStatus.Accepted ? UserStatus.Friend : UserStatus.Sender ;
       const profile = {
         ...sender.sender,
         status,
