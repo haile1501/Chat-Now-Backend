@@ -47,6 +47,7 @@ export class ChatGateWay {
     @MessageBody() createMessageDto: CreateMessageDto,
     @ConnectedSocket() client: Socket,
   ) {
+    console.log(createMessageDto)
     const roomName = createMessageDto.conversationId;
     const updateConversation = await this.messageService.sendMess(
       createMessageDto.content,

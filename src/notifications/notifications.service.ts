@@ -30,4 +30,19 @@ export class NotificationsService {
     const notification = await this.notificationRepository.findOneBy({notificationId});
     return await this.notificationRepository.remove(notification);
   }
+  async countMessNotReadInOneConversation(conversationId : string, userId : number){
+    const noti = await this.notificationRepository.createQueryBuilder()
+    .innerJoinAndSelect("notification","user.notifications")
+    .where("\"userId\" = :userId AND \"conversationId\" = :conversationId AND type = :notitype AND status = :notiStatus",
+    {userId : userId, conversationId : conversationId, notiType : NotificationType.NEW_MESSAGE , notiStatus : NotiStatus.NOT_READ_YET})
+    .getMany()
+    return noti;
+  }
+  async updateNotiMess(conversationId: string, userId: number){
+    const noti = await this.countMessNotReadInOneConversation(conversationId, userId);
+    for (let i = 0; i < noti.length ; i++){
+      await this.notificationRepository.update(noti[i].notificationId,{status : NotiStatus.READED});
+    }
+    return noti;
+  }
 }

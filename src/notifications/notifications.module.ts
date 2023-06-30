@@ -7,6 +7,8 @@ import { UsersModule } from 'src/users/users.module';
 import { MessagesModule } from 'src/messages/messages.module';
 import { FriendsModule } from 'src/friends/friends.module';
 import { ConversationsModule } from 'src/conversations/conversations.module';
+import { NotificationsController } from './notifications.controller';
+import { CallService } from 'src/call/call.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([NotificationEntity]),UsersModule,
@@ -15,6 +17,7 @@ import { ConversationsModule } from 'src/conversations/conversations.module';
   ConversationsModule,
   ],
   providers: [NotificationsGateway, NotificationsService],
-  exports : [NotificationsService]
+  exports : [NotificationsService],
+  controllers: [NotificationsController]
 })
 export class NotificationsModule {}

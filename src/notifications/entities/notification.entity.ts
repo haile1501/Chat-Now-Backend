@@ -13,6 +13,9 @@ export class NotificationEntity {
   @Column( {type :'enum', enum :NotiStatus,default : NotiStatus.NOT_READ_YET})
   status : NotiStatus;
 
+  @Column({nullable : true})
+  conversationId : string;
+
   @ManyToOne(() => User, (user) => user.notifications)
   user: User;
 }

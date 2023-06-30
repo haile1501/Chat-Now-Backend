@@ -28,6 +28,7 @@ import { AddUserDto } from 'src/conversations/dto/update-conversation.dto';
 import { AddUserSocketDto } from 'src/conversations/dto/add-friend-socket.dto';
 import { CreateMessageDto } from 'src/messages/dto/create-message.dto';
 import { Conversation } from 'src/conversations/entities/conversation.entity';
+import { CallService } from 'src/call/call.service';
 
 @WebSocketGateway()
 export class NotificationsGateway
@@ -184,26 +185,27 @@ export class NotificationsGateway
       }
     }
   }
-  // @SubscribeMessage('send')
-  //   async sendMess(
-  //       @MessageBody('conversationId') conversationId : string,
-  //       @ConnectedSocket() client : Socket
-  //   ){
-  //     const conversation = await this.conversationService.fineOneInDetailed(conversationId,client.data.userId);
-  //     const users = conversation.member;
-  //     for(let i = 0; i < users.length ; i++){
-  //       if(users[i].userId != client.data.userId){
-  //         await this.notificationsService.createNoti(NotificationType.NEW_MESSAGE,users[i].userId);
-  //         let receiveConversation = await this.conversationService.fineOneInDetailed(conversationId,users[i].userId);
-  //         const updatedNotification = await this.userService.getNotification(users[i].userId);
-  //         const notificationDetail = {
-  //           ...updatedNotification,
-  //           ...receiveConversation
-  //         }
-  //         this.io.to(users[i].email).emit('noti:receive',notificationDetail);
-  //       }
-  //     }
-  // }
+  @SubscribeMessage('send-noti')
+    async sendMess(
+        @MessageBody('conversationId') conversationId : string,
+        @ConnectedSocket() client : Socket
+    ){
+      const conversation = await this.conversationService.fineOneInDetailed(conversationId,client.data.userId);
+      const users = conversation.member;
+      for(let i = 0; i < users.length ; i++){
+        if(users[i].userId != client.data.userId){
+          await this.notificationsService.createNoti(NotificationType.NEW_MESSAGE,users[i].userId);
+          const updatedNotification = await this.userService.getNotification(users[i].userId);
+          const notiMessNotRead = await this.notificationsService.countMessNotReadInOneConversation(conversationId,users[i].userId);
+          const num = notiMessNotRead.length;
+          const notificationDetail = {
+            ...updatedNotification,
+            num,
+          }
+          this.io.to(users[i].email).emit('noti:messageNotRead',notificationDetail);
+        }
+      }
+  }
 
   @SubscribeMessage('call')
   async call(

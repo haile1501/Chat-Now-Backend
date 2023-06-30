@@ -1,3 +1,4 @@
+import { Call } from 'src/call/entities/call.entity';
 import { Gender, OnlineStatus } from 'src/constant/constant';
 import { Conversation } from 'src/conversations/entities/conversation.entity';
 import { Friend } from 'src/friends/entities/friend.entity';
@@ -9,6 +10,7 @@ import {
   JoinTable,
   ManyToMany,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -64,4 +66,7 @@ export class User {
 
   @OneToMany(() => Message, (message) => message.user)
   messages: Message[];
+
+  @OneToOne(() => Call,(call) => call.user)
+  call : Call;
 }

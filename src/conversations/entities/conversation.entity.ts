@@ -1,3 +1,4 @@
+import { Call } from 'src/call/entities/call.entity';
 import { CallType, ConversationType } from 'src/constant/constant';
 import { Message } from 'src/messages/entities/message.entity';
 import { User } from 'src/users/entities/user.entity';
@@ -35,6 +36,9 @@ export class Conversation {
   @ManyToMany(() => User, (user) => user.conversations)
   @JoinTable()
   users: User[];
+
+  @OneToMany(() => Call , (call) => call.conversation)
+  calls : Call[]; 
 
   @OneToMany(() => Message, (message) => message.conversation)
   messages: Message[];
