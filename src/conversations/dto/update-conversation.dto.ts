@@ -6,18 +6,17 @@ import { ApiProperty } from '@nestjs/swagger';
 export class UpdateConversationDto {
   @ApiProperty()
   @IsString()
-  groupName : string;
+  groupName: string;
 }
 
 export class AddUserDto {
   @ApiProperty()
   @IsNumber()
-  userId : number;
+  userId: number;
 }
-
 
 export class AddMutilUserDto {
   @ApiProperty()
-  @IsNumber()
-  userIds : number[];
+  @IsNumber({}, { each: true })
+  userIds: number[];
 }

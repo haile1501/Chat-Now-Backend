@@ -53,8 +53,11 @@ export class UsersController {
     @Body() updateUserDto: UpdateUserDto,
     @Req() request: Request,
   ) {
+    console.log(updateUserDto);
+
     const userId = request['user'].userId;
-    return await this.userService.update(userId, updateUserDto);
+    await this.userService.update(userId, updateUserDto);
+    return this.userService.findOne(request['user'].email);
   }
 
   @Post('upload')
@@ -68,9 +71,7 @@ export class UsersController {
   }
   @Post('uploadFile')
   @UseInterceptors(FileInterceptor('file'))
-  async uploadFile(
-    @UploadedFile() file: Express.Multer.File,
-  ) {
+  async uploadFile(@UploadedFile() file: Express.Multer.File) {
     return await this.userService.uploadFile(file);
   }
   @Get('getAvatar/:id')
@@ -78,11 +79,13 @@ export class UsersController {
     return await this.userService.getAvatarUrl(userId);
   }
   @Patch('changePassword')
-  async changePassword(@Req() request : Request,@Body() updatePassword : UpdatePassword){
+  async changePassword(
+    @Req() request: Request,
+    @Body() updatePassword: UpdatePassword,
+  ) {
     const userId = request['user'].userId;
-    console.log(userId)
+    console.log(userId);
     const password = updatePassword.password;
-    return await this.userService.updatePassword(userId,password);
+    return await this.userService.updatePassword(userId, password);
   }
-  
 }

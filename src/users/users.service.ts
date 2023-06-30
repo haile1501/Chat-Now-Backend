@@ -46,13 +46,13 @@ export class UsersService {
     return user;
   }
 
-  async updatePassword(userId : number, password : string){
+  async updatePassword(userId: number, password: string) {
     const newPassword = await hashPassword(password);
-    return this.userRepository.update(userId,{password : newPassword});
+    return this.userRepository.update(userId, { password: newPassword });
   }
 
   async update(userId: number, updateUserDto: UpdateUserDto) {
-    return this.userRepository.update({userId}, updateUserDto);
+    return this.userRepository.update({ userId }, updateUserDto);
   }
 
   async findAll(
@@ -115,9 +115,12 @@ export class UsersService {
     return await this.userRepository.update(user, { avatar: image.public_id });
   }
 
-  async uploadFile(file: Express.Multer.File){
+  async uploadFile(file: Express.Multer.File) {
     const uploadFile = await this.cloudinaryService.uploadFile(file);
-    return uploadFile.public_id;
+    const image = await this.cloudinaryService.cloudinary.api.resource(
+      uploadFile.public_id,
+    );
+    return image.secure_url;
   }
   async getAvatarUrl(userId: number) {
     const user = await this.getUserById(userId);

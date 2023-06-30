@@ -68,7 +68,7 @@ export class ConversationsController {
   @ApiResponse({ status: 400, description: 'forbiden.' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 200, description: 'leave successfully' })
-  @Post('/:conversationId/leave')
+  @Delete('/:conversationId/leave')
   async leaveConversation(
     @Req() request: Request,
     @Param('conversationId') conversationId: string,
@@ -119,20 +119,20 @@ export class ConversationsController {
     );
   }
 
-  @ApiOperation({ summary: 'retrieve conversation' })
-  @ApiResponse({ status: 400, description: 'forbiden.' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 200, description: 'OK' })
-  @Post('/:conversationId/member')
-  async addMember(
-    @Param('conversationId') conversationId: string,
-    @Body() addUserDto: AddUserDto,
-  ) {
-    return await this.conversationsService.addParticipants(
-      conversationId,
-      addUserDto.userId,
-    );
-  }
+  // @ApiOperation({ summary: 'retrieve conversation' })
+  // @ApiResponse({ status: 400, description: 'forbiden.' })
+  // @ApiResponse({ status: 401, description: 'Unauthorized' })
+  // @ApiResponse({ status: 200, description: 'OK' })
+  // @Post('/:conversationId/member')
+  // async addMember(
+  //   @Param('conversationId') conversationId: string,
+  //   @Body() addUserDto: AddUserDto,
+  // ) {
+  //   return await this.conversationsService.addParticipants(
+  //     conversationId,
+  //     addUserDto.userId,
+  //   );
+  // }
 
   @ApiOperation({ summary: 'retrieve conversation' })
   @ApiResponse({ status: 400, description: 'forbiden.' })
@@ -163,6 +163,4 @@ export class ConversationsController {
       userId,
     );
   }
-
-
 }
