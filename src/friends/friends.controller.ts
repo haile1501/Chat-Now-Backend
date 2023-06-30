@@ -89,4 +89,9 @@ export class FriendsController {
     const userId = request['user'].userId;
     return this.friendsService.getUserProfile(userId, userId);
   }
+  @Get('getListFriend')
+  async getListFriend(@Req() request : Request){
+    const userId = request['user'].userId;
+    return this.friendsService.getAllFriend(userId);
+  }
 }

@@ -190,6 +190,7 @@ export class ConversationsService {
     }
     return await this.findUserInConversation(conversationId);
   }
+  
   async removeParticipants(conversationId: string, userRemovedId: number) {
     console.log(conversationId);
     const userRemoved = await this.userService.getUserById(userRemovedId);
