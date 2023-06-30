@@ -186,25 +186,39 @@ export class NotificationsGateway
     }
   }
   @SubscribeMessage('send-noti')
-    async sendMess(
-        @MessageBody('conversationId') conversationId : string,
-        @ConnectedSocket() client : Socket
-    ){
-      const conversation = await this.conversationService.fineOneInDetailed(conversationId,client.data.userId);
-      const users = conversation.member;
-      for(let i = 0; i < users.length ; i++){
-        if(users[i].userId != client.data.userId){
-          await this.notificationsService.createNoti(NotificationType.NEW_MESSAGE,users[i].userId);
-          const updatedNotification = await this.userService.getNotification(users[i].userId);
-          const notiMessNotRead = await this.notificationsService.countMessNotReadInOneConversation(conversationId,users[i].userId);
-          const num = notiMessNotRead.length;
-          const notificationDetail = {
-            ...updatedNotification,
-            num,
-          }
-          this.io.to(users[i].email).emit('noti:messageNotRead',notificationDetail);
-        }
+  async sendMess(
+    @MessageBody('conversationId') conversationId: string,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const conversation = await this.conversationService.fineOneInDetailed(
+      conversationId,
+      client.data.userId,
+    );
+    const users = conversation.member;
+    for (let i = 0; i < users.length; i++) {
+      if (users[i].userId != client.data.userId) {
+        await this.notificationsService.createNoti(
+          NotificationType.NEW_MESSAGE,
+          users[i].userId,
+        );
+        const updatedNotification = await this.userService.getNotification(
+          users[i].userId,
+        );
+        const notiMessNotRead =
+          await this.notificationsService.countMessNotReadInOneConversation(
+            conversationId,
+            users[i].userId,
+          );
+        const num = notiMessNotRead.length;
+        const notificationDetail = {
+          ...updatedNotification,
+          num,
+        };
+        this.io
+          .to(users[i].email)
+          .emit('noti:messageNotRead', notificationDetail);
       }
+    }
   }
 
   @SubscribeMessage('call')
@@ -314,6 +328,18 @@ export class NotificationsGateway
     const users = conversation.member;
     for (let i = 0; i < users.length; i++) {
       this.io.to(users[i].email).emit('noti:added-to-group', body);
+    }
+  }
+
+  @SubscribeMessage('noti:member-added')
+  async handleMemberAdded(
+    @MessageBody('conversation') body: any,
+    @MessageBody('ids') ids: Array<any>,
+    @ConnectedSocket() client: Socket,
+  ) {
+    for (let i = 0; i < ids.length; i++) {
+      const user = await this.userService.getUserById(ids[i]);
+      this.io.to(user.userId).emit('noti:added-to-group', body);
     }
   }
 }
